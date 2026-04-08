@@ -7,6 +7,7 @@ import React, {
   useRef // ✅ <-- add this import
 } from 'react';
 
+
 const CartContext = createContext();
 
 export const useCart = () => {
@@ -18,7 +19,13 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(() => {
+  const savedCart = localStorage.getItem("cart");
+  return savedCart ? JSON.parse(savedCart) : [];
+});
+useEffect(() => {
+  localStorage.setItem("cart", JSON.stringify(cartItems));
+}, [cartItems]);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [cartToast, setCartToast] = useState({ show: false, message: '' });
   const toastTimeoutRef = useRef(null);
@@ -95,25 +102,27 @@ export const CartProvider = ({ children }) => {
 
   // Save cart to localStorage whenever it changes for the current user key
   useEffect(() => {
-  try {
-    const key = getCartStorageKey(currentUserId);
+    try {
+      const key = getCartStorageKey(currentUserId);
 
-    const safeItems = cartItems.map((item) => ({
-      id: item.id,
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity,
-      image: item.image,
-      description: item.description || '',
-      age_range: item.age_range || '',
-      stock_quantity: item.stock_quantity || 999,
-    }));
+      const safeItems = cartItems.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        original_price: item.original_price || item.price,
+        quantity: item.quantity,
+        image: item.image,
+        description: item.description || '',
+        age_range: item.age_range || '',
+        stock_quantity: item.stock_quantity || 999,
+        mrp: item.mrp,
+      }));
 
-    localStorage.setItem(key, JSON.stringify(safeItems));
-  } catch (err) {
-    console.error("Error saving cart to localStorage:", err);
-  }
-}, [cartItems, currentUserId]);
+      localStorage.setItem(key, JSON.stringify(safeItems));
+    } catch (err) {
+      console.error("Error saving cart to localStorage:", err);
+    }
+  }, [cartItems, currentUserId]);
 
 
   // ✅ Normalize product structure for consistent cart data
@@ -202,6 +211,10 @@ export const CartProvider = ({ children }) => {
     return cartItems.reduce((count, item) => count + (Number(item.quantity) || 0), 0);
   };
 
+  const getCartItemCount = () => {
+    return cartItems.length;
+  };
+
   const value = {
     cartItems,
     addToCart,
@@ -210,6 +223,7 @@ export const CartProvider = ({ children }) => {
     clearCart,
     getCartTotal,
     getCartCount,
+    getCartItemCount,
     showCartToast,
   };
 

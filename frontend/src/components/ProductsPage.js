@@ -9,13 +9,14 @@ const ProductsPage = () => {
   
   const location = useLocation();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, cartItems, updateQuantity, removeFromCart } = useCart();
  
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [highlightedProduct, setHighlightedProduct] = useState(null);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [cartQuantities, setCartQuantities] = useState({});
   const productRefs = useRef({});
 
   // 🔹 New state for sorting
@@ -82,6 +83,17 @@ useEffect(() => {
     setTimeout(() => setHighlightedProduct(null), 2500);
   }
 }, [location.search, location.pathname, subcategory, categoryId]);
+
+// Sync cart quantities whenever cartItems changes
+useEffect(() => {
+  if (cartItems && Array.isArray(cartItems)) {
+    const newQuantities = {};
+    cartItems.forEach(item => {
+      newQuantities[item.id] = item.quantity;
+    });
+    setCartQuantities(newQuantities);
+  }
+}, [cartItems]);
 
 
   // useEffect(() => {
@@ -367,7 +379,7 @@ const fetchProducts = async () => {
       return;
     }
 
-    addToCart({ ...product, original_price: product.mrp || product.price });
+    addToCart({ ...product, original_price: product.mrp || product.price }, 1);
   };
 
   const handleProductClick = (product) => {
@@ -797,7 +809,7 @@ useEffect(() => {
                 <div
                   key={product.id}
                   ref={(el) => (productRefs.current[product.id] = el)}
-                  className={`group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border bg-white shadow-[0_6px_20px_rgba(27,49,55,0.09)] transition hover:-translate-y-1 hover:shadow-[0_14px_28px_rgba(27,49,55,0.16)] ${
+                  className={`group flex flex-col overflow-hidden rounded-2xl border bg-white shadow-[0_6px_20px_rgba(27,49,55,0.09)] transition hover:-translate-y-1 hover:shadow-[0_14px_28px_rgba(27,49,55,0.16)] min-h-[420px] ${
                     highlightedProduct === product.id ? 'border-[#0f6a73] ring-2 ring-[#0f6a73]/35' : 'border-[#d8e5e7]'
                   }`}
                   onClick={() => handleProductClick(product)}
@@ -898,22 +910,60 @@ useEffect(() => {
 
 
 
-                      <button
-                        className={`mt-2.5 inline-flex w-full items-center justify-center rounded-xl border-2 px-4 py-2 text-[0.95rem] font-semibold transition ${
-                          product.stock_quantity <= 0
-                            ? 'cursor-not-allowed border-[#ccc] bg-[#ccc] text-white'
-                            : 'border-[#0f6a73] bg-white text-[#0f6a73] hover:bg-[#0f6a73] hover:text-white hover:shadow-[0_8px_18px_rgba(15,106,115,0.3)]'
-                        }`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddToCart(product);
-                        }}
-                        disabled={product.stock_quantity <= 0}
-                      >
-                        {product.stock_quantity <= 0
-                          ? 'Out of Stock'
-                          : 'Add to Cart'}
-                      </button>
+                      <div className="mt-2.5 w-full h-[44px] flex items-center justify-center">
+                        {cartQuantities[product.id] ? (
+                          <div className="w-full flex items-center justify-between gap-2">
+                            <div className="w-[45%] flex items-center justify-between gap-1.5 rounded-lg border border-[#0f6a73] px-2 py-1 hover:bg-slate-100 transition">
+                              <button
+                                className="text-base font-bold text-[#0f6a73] transition leading-none"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (cartQuantities[product.id] <= 1) {
+                                    removeFromCart(product.id);
+                                  } else {
+                                    updateQuantity(product.id, cartQuantities[product.id] - 1);
+                                  }
+                                }}
+                              >
+                                –
+                              </button>
+                              <span className="text-center text-sm font-bold text-[#0f6a73] min-w-[25px]">
+                                {cartQuantities[product.id]}
+                              </span>
+                              <button
+                                className="text-base font-bold text-[#0f6a73] transition disabled:text-[#ccc] disabled:cursor-not-allowed leading-none"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (cartQuantities[product.id] < product.stock_quantity) {
+                                    updateQuantity(product.id, cartQuantities[product.id] + 1);
+                                  }
+                                }}
+                                disabled={cartQuantities[product.id] >= product.stock_quantity}
+                              >
+                                +
+                              </button>
+                            </div>
+                            <span className="w-[45%] text-xs font-semibold text-[#999] text-center" title={`Max: ${product.stock_quantity}`}>Max: {product.stock_quantity}</span>
+                          </div>
+                        ) : (
+                          <button
+                            className={`w-full h-full inline-flex items-center justify-center rounded-xl border-2 px-4 py-2 text-[0.95rem] font-semibold transition ${
+                              product.stock_quantity <= 0
+                                ? 'cursor-not-allowed border-[#ccc] bg-[#ccc] text-white'
+                                : 'border-[#0f6a73] bg-white text-[#0f6a73] hover:bg-[#0f6a73] hover:text-white hover:shadow-[0_8px_18px_rgba(15,106,115,0.3)]'
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToCart(product);
+                            }}
+                            disabled={product.stock_quantity <= 0}
+                          >
+                            {product.stock_quantity <= 0
+                              ? 'Out of Stock'
+                              : 'Add to Cart'}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

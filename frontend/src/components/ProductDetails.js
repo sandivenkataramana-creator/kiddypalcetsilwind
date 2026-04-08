@@ -21,9 +21,11 @@ const [settingMainImage, setSettingMainImage] = useState(false);
   const [product, setProduct] = useState(() => (location.state && location.state.product) ? location.state.product : null);
   const [loading, setLoading] = useState(!((location.state && location.state.product)));
   const [error, setError] = useState("");
-  const { addToCart } = useCart();
+  const { addToCart, cartItems, updateQuantity, removeFromCart } = useCart();
   const [showEditModal, setShowEditModal] = useState(false);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [isInCartMode, setIsInCartMode] = useState(false);
+  const [cartQuantity, setCartQuantity] = useState(1);
 
   const [activeImage, setActiveImage] = useState(null);
 
@@ -96,6 +98,21 @@ const [settingMainImage, setSettingMainImage] = useState(false);
 
     fetchProduct();
   }, [productId]);
+
+  // Sync quantity with cart whenever cartItems changes
+  useEffect(() => {
+    if (product && product.id && cartItems && Array.isArray(cartItems)) {
+      const existingItem = cartItems.find(item => String(item.id) === String(product.id));
+      if (existingItem) {
+        setCartQuantity(existingItem.quantity);
+        setIsInCartMode(true);
+      } else {
+        // Product removed from cart
+        setIsInCartMode(false);
+        setCartQuantity(1);
+      }
+    }
+  }, [cartItems, product?.id]);
 
   // Build imageSources from product
   const imageSources = useMemo(() => {
@@ -503,7 +520,7 @@ const handleClearMainImage = async () => {
                 )}
               </div>
 
-              <div className="flex min-w-0 flex-1 items-center justify-center rounded-3xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex min-w-0 flex-1 items-center justify-center rounded-3xl border border-slate-200 bg-slate-50 p-4 h-[520px]">
                 {activeImage ? (
                   <img
                     src={activeImage.url}
@@ -522,7 +539,7 @@ const handleClearMainImage = async () => {
               </div>
             </section>
 
-            <section className="flex flex-col items-start rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <section className="flex flex-col items-start rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 overflow-y-auto h-full">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">
                 {product.brand_name || product.brand || 'Brand Name'}
               </p>
@@ -562,22 +579,61 @@ const handleClearMainImage = async () => {
                 {product.stock_quantity > 0 ? 'In Stock' : 'Out of Stock'}
               </p>
 
-              <div className="mt-6 flex flex-wrap gap-3">
-                <button
-                  className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800"
-                  onClick={() => addToCart({ ...product, original_price: product.mrp })}
-                >
-                  Add to Cart
-                </button>
-                <button
-                  className="rounded-xl border border-slate-900 bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-black"
-                  onClick={() => navigate('/checkout', { state: { product } })}
-                >
-                  Buy Now
-                </button>
+              <div className="mt-6 flex flex-wrap gap-3 w-full h-12 items-center">
+                <div className="flex gap-2 h-full items-center w-[110px]">
+                  {!isInCartMode ? (
+                    <>
+                      <button
+                        className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 h-full flex items-center justify-center w-full"
+                        onClick={() => {
+                          addToCart({ ...product, original_price: product.mrp }, 1);
+                        }}
+                      >
+                        Add to Cart
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-between gap-2 rounded-lg border-2 border-slate-900 px-2 py-2 h-full w-full hover:bg-slate-100 transition">
+                      <button
+                        className="text-xl font-bold text-slate-900 transition leading-none"
+                        onClick={() => {
+                          if (cartQuantity <= 1) {
+                            removeFromCart(product.id);
+                            setIsInCartMode(false);
+                            setCartQuantity(1);
+                          } else {
+                            updateQuantity(product.id, cartQuantity - 1);
+                          }
+                        }}
+                      >
+                        –
+                      </button>
+                      <span className="text-center text-base font-bold text-slate-900 min-w-[30px]">
+                        {cartQuantity}
+                      </span>
+                      <button
+                        className="text-xl font-bold text-slate-900 transition disabled:text-slate-300 disabled:cursor-not-allowed leading-none"
+                        onClick={() => {
+                          updateQuantity(product.id, cartQuantity + 1);
+                        }}
+                        disabled={cartQuantity >= product.stock_quantity}
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-2 h-full items-center">
+                  <button
+                    className="rounded-xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-black whitespace-nowrap h-full flex items-center justify-center"
+                    onClick={() => navigate('/checkout', { state: { product, quantity: isInCartMode ? cartQuantity : 1 } })}
+                  >
+                    Buy Now
+                  </button>
+                </div>
                 {isAdminLoggedIn && (
                   <button
-                    className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:border-emerald-400 hover:bg-emerald-100"
+                    className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:border-emerald-400 hover:bg-emerald-100 h-full flex items-center justify-center"
                     onClick={() => setShowEditModal(true)}
                   >
                     Edit Product
