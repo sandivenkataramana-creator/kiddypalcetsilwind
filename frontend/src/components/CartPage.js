@@ -11,8 +11,12 @@ const CartPage = () => {
   const [toast, setToast] = useState({ show: false, message: '' });
 
   const handleQuantityChange = (productId, newQuantity) => {
-    if (newQuantity < 1) return;
-    updateQuantity(productId, parseInt(newQuantity, 10));
+    const num = parseInt(newQuantity, 10);
+    if (num < 1) {
+      removeFromCart(productId);
+      return;
+    }
+    updateQuantity(productId, num);
   };
 
   const handleProductClick = (item) => {
@@ -146,9 +150,8 @@ const CartPage = () => {
                       <label className="text-sm font-medium text-[#666]">Quantity:</label>
                       <div className="flex items-center overflow-hidden rounded-lg border-2 border-[#ede6d9]">
                         <button
-                          className="h-9 w-9 border-r border-[#ede6d9] bg-[#2e79e3] text-lg text-white transition hover:bg-[#245fb1] disabled:cursor-not-allowed disabled:opacity-40"
+                          className="h-9 w-9 border-r border-[#ede6d9] bg-[#2e79e3] text-lg text-white transition hover:bg-[#245fb1]"
                           onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                          disabled={item.quantity <= 1}
                         >
                           -
                         </button>

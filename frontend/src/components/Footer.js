@@ -9,7 +9,7 @@ const Footer = () => {
   return (
     <footer className="bg-[#f01c71] text-white">
       <div className="mx-auto w-full max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
           <section>
             <h3 className="mb-2 inline-block border-b-2 border-white pb-1 text-sm font-semibold">Info</h3>
             <ul className="space-y-0.5 text-xs">

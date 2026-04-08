@@ -7,7 +7,7 @@ import { API_BASE_URL } from './config';
 
 const Header = () => {
   const navigate = useNavigate();
-  const { getCartCount } = useCart();
+  const { getCartItemCount } = useCart();
   const [user, setUser] = useState(null);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -450,7 +450,7 @@ const Header = () => {
             <span className="cart-icon inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#fff7eb] text-[#273c2e] shadow-sm transition hover:bg-[#f3e1bf] sm:h-11 sm:w-11">
               <ShoppingCart size={21} color="BLACK" />
             </span>
-            {getCartCount() > 0 && <span className="cart-badge absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#f01c71] px-1 text-[11px] font-bold text-white">{getCartCount()}</span>}
+            {getCartItemCount() > 0 && <span className="cart-badge absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#f01c71] px-1 text-[11px] font-bold text-white">{getCartItemCount()}</span>}
           </button>
         </div>
       </div>

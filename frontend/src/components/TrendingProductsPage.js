@@ -7,18 +7,30 @@ import { API_BASE_URL } from "./config";
 
 const TrendingProductsPage = () => {
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, cartItems, updateQuantity, removeFromCart } = useCart();
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [sortOrder, setSortOrder] = useState('none');
+  const [cartQuantities, setCartQuantities] = useState({});
   const productRefs = useRef({});
 
   // Fetch trending products
   useEffect(() => {
     fetchTrendingProducts();
   }, []);
+
+  // Sync cart quantities whenever cartItems changes
+  useEffect(() => {
+    if (cartItems && Array.isArray(cartItems)) {
+      const newQuantities = {};
+      cartItems.forEach(item => {
+        newQuantities[item.id] = item.quantity;
+      });
+      setCartQuantities(newQuantities);
+    }
+  }, [cartItems]);
 
   const fetchTrendingProducts = async () => {
     try {
@@ -49,13 +61,13 @@ const TrendingProductsPage = () => {
   };
 
   const handleAddToCart = (product) => {
-    addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image_url: product.image_url,
-      stock_quantity: product.stock_quantity,
-    });
+    if (product.stock_quantity <= 0) {
+      setMessage('This product is out of stock');
+      setTimeout(() => setMessage(''), 2000);
+      return;
+    }
+
+    addToCart({ ...product, original_price: product.mrp || product.price }, 1);
   };
 
   // Apply sorting
@@ -119,7 +131,7 @@ const TrendingProductsPage = () => {
                 <div
                   key={product.id}
                   ref={(el) => (productRefs.current[product.id] = el)}
-                  className="cursor-pointer overflow-hidden rounded-2xl border border-[#eaeaea] bg-white shadow-[0_4px_14px_rgba(0,0,0,0.08)] transition hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,0,0,0.12)]"
+                  className="cursor-pointer overflow-hidden rounded-2xl border border-[#eaeaea] bg-white shadow-[0_4px_14px_rgba(0,0,0,0.08)] transition hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,0,0,0.12)] min-h-[420px] flex flex-col"
                   onClick={() => handleProductClick(product)}
                 >
                   <div className="relative flex h-[180px] items-center justify-center bg-[#f7f7f7]">
@@ -164,10 +176,10 @@ const TrendingProductsPage = () => {
                     })()}
                   </div>
 
-                  <div className="p-3">
+                  <div className="p-3 flex flex-col flex-1">
                     <h3 className="line-clamp-2 text-sm font-semibold text-[#333]">{product.name}</h3>
                     <p className="hidden">{product.description}</p>
-                    <div className="mt-3 flex items-center justify-between gap-2">
+                    <div className="mt-auto flex flex-col gap-2">
                       <div className="flex items-center gap-2">
                         {product.mrp && product.price && Number(product.mrp) > Number(product.price) ? (
                           <>
@@ -185,22 +197,60 @@ const TrendingProductsPage = () => {
                         )}
                       </div>
 
-                      <button
-                        className={`rounded-full border-2 px-3 py-2 text-xs font-bold transition sm:text-sm ${
-                          product.stock_quantity <= 0
-                            ? 'cursor-not-allowed border-[#ccc] bg-[#ccc] text-white'
-                            : 'border-[#6718c2] bg-white text-[#6718c2] hover:bg-[#6718c2] hover:text-white hover:shadow-[0_6px_16px_rgba(103,24,194,0.35)]'
-                        }`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddToCart(product);
-                        }}
-                        disabled={product.stock_quantity <= 0}
-                      >
-                        {product.stock_quantity <= 0
-                          ? 'Out of Stock'
-                          : 'Add to Cart'}
-                      </button>
+                      <div className="mt-2.5 w-full h-[44px] flex items-center justify-center">
+                        {cartQuantities[product.id] ? (
+                          <div className="w-full flex items-center justify-between gap-1">
+                            <div className="w-[45%] flex items-center justify-between gap-1 rounded-full border border-[#6718c2] px-2 py-1 hover:bg-slate-100 transition">
+                              <button
+                                className="text-sm font-bold text-[#6718c2] transition leading-none"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (cartQuantities[product.id] <= 1) {
+                                    removeFromCart(product.id);
+                                  } else {
+                                    updateQuantity(product.id, cartQuantities[product.id] - 1);
+                                  }
+                                }}
+                              >
+                                –
+                              </button>
+                              <span className="text-center text-xs font-bold text-[#6718c2] min-w-[25px]">
+                                {cartQuantities[product.id]}
+                              </span>
+                              <button
+                                className="text-sm font-bold text-[#6718c2] transition disabled:text-[#ccc] disabled:cursor-not-allowed leading-none"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (cartQuantities[product.id] < product.stock_quantity) {
+                                    updateQuantity(product.id, cartQuantities[product.id] + 1);
+                                  }
+                                }}
+                                disabled={cartQuantities[product.id] >= product.stock_quantity}
+                              >
+                                +
+                              </button>
+                            </div>
+                            <span className="w-[45%] text-xs font-semibold text-[#999] text-center" title={`Max: ${product.stock_quantity}`}>Max: {product.stock_quantity}</span>
+                          </div>
+                        ) : (
+                          <button
+                            className={`w-full h-full rounded-full border-2 px-3 py-2 text-xs font-bold transition sm:text-sm flex items-center justify-center ${
+                              product.stock_quantity <= 0
+                                ? 'cursor-not-allowed border-[#ccc] bg-[#ccc] text-white'
+                                : 'border-[#6718c2] bg-white text-[#6718c2] hover:bg-[#6718c2] hover:text-white hover:shadow-[0_6px_16px_rgba(103,24,194,0.35)]'
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToCart(product);
+                            }}
+                            disabled={product.stock_quantity <= 0}
+                          >
+                            {product.stock_quantity <= 0
+                              ? 'Out of Stock'
+                              : 'Add to Cart'}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
