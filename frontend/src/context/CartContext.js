@@ -7,6 +7,7 @@ import React, {
   useRef // ✅ <-- add this import
 } from 'react';
 
+
 const CartContext = createContext();
 
 export const useCart = () => {
@@ -18,7 +19,13 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(() => {
+  const savedCart = localStorage.getItem("cart");
+  return savedCart ? JSON.parse(savedCart) : [];
+});
+useEffect(() => {
+  localStorage.setItem("cart", JSON.stringify(cartItems));
+}, [cartItems]);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [cartToast, setCartToast] = useState({ show: false, message: '' });
   const toastTimeoutRef = useRef(null);

@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import Header from './Header';
 import Footer from './Footer';
 import { API_BASE_URL } from './config';
+import { X } from "lucide-react";
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -110,13 +111,13 @@ const CartPage = () => {
                     key={item.id}
                     className="relative grid gap-4 rounded-2xl border border-[#ede6d9] bg-white p-4 shadow-[0_8px_24px_rgba(39,60,46,0.12)] transition hover:translate-x-1 sm:grid-cols-[120px_1fr] lg:grid-cols-[120px_1fr_auto_auto]"
                   >
-                    <button
-                      className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#f44336] text-xl leading-none text-white transition hover:rotate-90 hover:bg-[#d32f2f]"
-                      onClick={() => removeFromCart(item.id)}
-                      title="Remove from cart"
-                    >
-                      ×
-                    </button>
+                   <button
+  className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-[#f44336] text-white hover:bg-[#d32f2f]"
+  onClick={() => removeFromCart(item.id)}
+  title="Remove from cart"
+>
+  <X size={16} />
+</button>
 
                     <div
                       className="flex h-[120px] w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-[#ede6d9]"
@@ -174,7 +175,7 @@ const CartPage = () => {
                       <span className="text-xs text-[#666]">(Max: {item.stock_quantity})</span>
                     </div>
 
-                    <div className="text-left sm:text-right">
+                    <div className="text-left sm:text-right pr-10">
                       <div className="text-xs text-[#4f6354]">Price</div>
                       <div className="mt-1 text-lg font-bold text-[#222]">₹{unitPrice.toFixed(2)}</div>
                       {hasDiscount ? (
