@@ -297,7 +297,7 @@ const HomePage = () => {
     <div className="min-h-screen bg-[#f8f5ee] text-[#1b3137]">
       <Header />
 
-      <main className="mx-auto w-full max-w-none space-y-8 px-1 py-5 sm:px-2 lg:px-3 lg:py-7">
+      <main className="mx-auto w-full max-w-7xl space-y-8 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
         <HeroSlider slides={slides} />
 
         <SectionShell title="Shop by Price" tone="soft">
@@ -313,7 +313,7 @@ const HomePage = () => {
 
             <div
               ref={priceScrollRef}
-              className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-0.5 pb-2 scroll-smooth [scroll-padding-inline:0.125rem] sm:px-4 sm:[scroll-padding-inline:1rem] lg:justify-center lg:overflow-x-visible lg:px-0 lg:pb-0 lg:[scroll-padding-inline:0]"
+              className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-0.5 pb-2 scroll-smooth [scroll-padding-inline:0.125rem] sm:px-4 sm:[scroll-padding-inline:1rem] lg:overflow-x-auto lg:flex-nowrap"
             >
               {prices.map((price) => (
                 <button
@@ -321,7 +321,7 @@ const HomePage = () => {
                   data-scroll-card="true"
                   type="button"
                   onClick={() => navigate(`/products?price=0-${price.maxPrice}`)}
-                  className="min-w-[176px] snap-start rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
+                  className="min-w-[176px] sm:min-w-[200px] lg:min-w-[220px] snap-start rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
                 >
                   <div className="flex h-36 flex-col justify-between rounded-3xl bg-gradient-to-br from-[#d8f0f2] to-[#c3e5e9] p-4">
                     <span className="text-xs font-semibold uppercase tracking-[0.32em] text-[#0f6a73]/85">
@@ -362,7 +362,7 @@ const HomePage = () => {
 
             <div
               ref={ageScrollRef}
-              className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-0.5 pb-2 scroll-smooth [scroll-padding-inline:0.125rem] sm:px-4 sm:[scroll-padding-inline:1rem] lg:justify-center lg:overflow-x-visible lg:px-0 lg:pb-0 lg:[scroll-padding-inline:0]"
+              className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-0.5 pb-2 scroll-smooth [scroll-padding-inline:0.125rem] sm:px-4 sm:[scroll-padding-inline:1rem] lg:overflow-x-auto lg:flex-nowrap lg:px-0 lg:pb-0 lg:[scroll-padding-inline:0]"
             >
               {ageRanges.map((age) => (
                 <button
@@ -370,7 +370,7 @@ const HomePage = () => {
                   data-scroll-card="true"
                   type="button"
                   onClick={() => navigate(`/products?age=${age.age}`)}
-                  className="min-w-[176px] snap-start rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
+                  className="min-w-[176px] sm:min-w-[200px] lg:min-w-[220px] snap-start rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
                 >
                   <div className={`flex h-32 items-center justify-center rounded-2xl p-3 ${age.bgClass}`}>
                     <img src={age.icon} alt={age.label} className="h-full w-full rounded-xl object-contain" />
@@ -414,7 +414,7 @@ const HomePage = () => {
                   data-scroll-card="true"
                   type="button"
                   onClick={() => navigate(`/products/by-category/${category.sno}`)}
-                  className="min-w-[176px] snap-start rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
+                  className="min-w-[176px] sm:min-w-[200px] lg:min-w-[220px] snap-start rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
                 >
                   <img
                     src={categoryImages[index % categoryImages.length]}
@@ -562,7 +562,7 @@ const HomePage = () => {
                     data-scroll-card="true"
                     type="button"
                     onClick={() => navigate(`/products?tag=${character.id}`)}
-                    className="min-w-[176px] snap-start rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
+                    className="min-w-[176px] sm:min-w-[200px] lg:min-w-[220px] snap-start rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
                   >
                     {character.image ? (
                       <img
