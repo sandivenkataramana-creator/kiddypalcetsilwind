@@ -22,6 +22,9 @@ const Header = () => {
   const [announcementSettings, setAnnouncementSettings] = useState({ displayDuration: 5000, gapDuration: 1000 });
   const [currentAnnouncementIndex, setCurrentAnnouncementIndex] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSubmenu, setMobileSubmenu] = useState(null);
+  const [mobileSelectedCategory, setMobileSelectedCategory] = useState(null);
+  const [mobileSubcategories, setMobileSubcategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const headerRef = useRef(null);
   const typingTimer = useRef(null);
@@ -154,6 +157,14 @@ const Header = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (!mobileMenuOpen) {
+      setMobileSubmenu(null);
+      setMobileSelectedCategory(null);
+      setMobileSubcategories([]);
+    }
+  }, [mobileMenuOpen]);
+
   const cancelDropdownClose = () => {
     if (dropdownCloseTimer.current) {
       window.clearTimeout(dropdownCloseTimer.current);
@@ -214,6 +225,18 @@ const Header = () => {
     setActiveDropdown(null);
   };
 
+  const handleMobileSelectCategory = async (categoryId, categoryName) => {
+    setMobileSelectedCategory({ id: categoryId, name: categoryName });
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/categories/${categoryId}/subcategories`);
+      const data = await response.json();
+      setMobileSubcategories(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching mobile subcategories:', error);
+      setMobileSubcategories([]);
+    }
+  };
+
   const capitalizeFirstLetter = (text = '') => {
     if (!text) return '';
     return text.charAt(0).toUpperCase() + text.slice(1);
@@ -249,18 +272,18 @@ const Header = () => {
             </a>
 
             <div className="relative" onMouseEnter={() => setShowStoresDropdown(true)} onMouseLeave={() => setShowStoresDropdown(false)}>
-              <button className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-white/15 sm:px-3 sm:py-2 sm:text-sm">
+              <button type="button" onClick={() => setShowStoresDropdown(prev => !prev)} className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-white/15 sm:px-3 sm:py-2 sm:text-sm">
                 <Home size={14} className="mr-1 sm:h-4 sm:w-4" />
                 Our Stores
               </button>
 
               {showStoresDropdown && (
-                <div className="absolute right-0 top-full z-50 w-72 rounded-2xl bg-white p-3 shadow-soft ring-1 ring-black/5">
+                <div className="absolute right-0 top-full z-50 w-72 rounded-2xl bg-white p-3 shadow-soft ring-1 ring-black/5" onClick={(event) => event.stopPropagation()}>
                 <a href="https://www.google.com/maps/search/?api=1&query=Kiddy+Palace+Narsingi" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-xl px-3 py-2 text-[#273c2e] transition hover:bg-[#fff7eb]">
                   <span className="inline-flex h-10 w-10 flex-none items-center justify-center rounded-full bg-[#f4f7f5] text-[#2e79e3]"><MapPin size={20} /></span>
                   <span className="text-sm font-medium leading-5">Narsingi - 70750 04435</span>
                 </a>
-                <a href="https://maps.app.goo.gl/GhHuPQJrWw1n2XF98" target="_blank" rel="noopener noreferrer" className="mt-2 flex items-center gap-3 rounded-xl px-3 py-2 text-[#273c2e] transition hover:bg-[#fff7eb]">
+                <a href="https://www.google.com/maps/search/?api=1&query=Kiddy+Palace+Nanakramguda" target="_blank" rel="noopener noreferrer" className="mt-2 flex items-center gap-3 rounded-xl px-3 py-2 text-[#273c2e] transition hover:bg-[#fff7eb]">
                   <span className="inline-flex h-10 w-10 flex-none items-center justify-center rounded-full bg-[#f4f7f5] text-[#2e79e3]"><MapPin size={20} /></span>
                   <span className="text-sm font-medium leading-5">Nanakramguda - 92912 55974</span>
                 </a>
@@ -377,7 +400,11 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-3">
-          <button type="button" className="flex cursor-pointer items-center justify-center rounded-xl p-1.5 text-[#273c2e] transition hover:bg-[#fff7eb] xl:hidden" onClick={() => setMobileMenuOpen((previous) => !previous)}>
+          <button
+            type="button"
+            className={`flex cursor-pointer items-center justify-center rounded-xl p-1.5 text-[#273c2e] transition duration-300 ease-out xl:hidden ${mobileMenuOpen ? 'scale-105' : 'hover:scale-105 hover:bg-[#fff7eb]'}`}
+            onClick={() => setMobileMenuOpen((previous) => !previous)}
+          >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
 
@@ -447,7 +474,7 @@ const Header = () => {
           </div>
 
           <button type="button" className="cart-icon-wrapper relative cursor-pointer" onClick={() => navigate('/cart')}>
-            <span className="cart-icon inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#fff7eb] text-[#273c2e] shadow-sm transition hover:bg-[#f3e1bf] sm:h-11 sm:w-11">
+            <span className="cart-icon inline-flex h-10 w-10 items-center justify-center rounded-full text-[#273c2e] transition sm:h-11 sm:w-11">
               <ShoppingCart size={21} color="BLACK" />
             </span>
             {getCartCount() > 0 && <span className="cart-badge absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#f01c71] px-1 text-[11px] font-bold text-white">{getCartCount()}</span>}
@@ -456,45 +483,161 @@ const Header = () => {
       </div>
 
       {mobileMenuOpen && (
-        <div className="mobile-menu fixed inset-0 z-[1500] bg-black/30 backdrop-blur-[2px] xl:hidden">
-          <div className="mobile-menu-content absolute right-0 top-0 h-full w-[88vw] max-w-sm overflow-y-auto bg-white p-5 shadow-soft">
-            <ul className="mobile-nav-list m-0 flex list-none flex-col gap-1 p-0">
-              {[
-                ['About', '/about'],
-                ['All Products', '/products'],
-                ['Age', '/products?age=0-18 Months'],
-                ['New Arrivals', '/products?sort=new'],
-                ['Categories', '/products'],
-                ['Brand', '/products?brand='],
-                ['Characters & Themes', '/products?hasTag=true'],
-                ['Customized Products', '/products?customized=true'],
-                ['Special Offers', '/products?discount=high'],
-                ['Gift Cards', '/giftCards'],
-              ].map(([label, path]) => (
-                <li
-                  key={label}
-                  className="mobile-nav-item cursor-pointer rounded-xl px-4 py-3 text-sm font-semibold text-[#273c2e] transition hover:bg-[#fff7eb]"
-                  onClick={() => {
-                    navigate(path);
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  {label}
-                </li>
-              ))}
+        <div className="mobile-menu fixed inset-0 z-[1500] bg-black/30 backdrop-blur-[2px] animate-[kpFadeIn_260ms_ease-out] xl:hidden" onClick={() => setMobileMenuOpen(false)}>
+          <div className="mobile-menu-content absolute right-0 top-0 h-full w-[60vw] max-w-sm overflow-y-auto bg-white p-5 shadow-soft animate-[kpSlideIn_280ms_ease-out]" onClick={(event) => event.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-[#273c2e]">Menu</h2>
+              <button type="button" className="flex items-center justify-center rounded-xl p-1 text-[#273c2e] transition hover:bg-[#fff7eb]" onClick={() => setMobileMenuOpen(false)}>
+                <X size={24} />
+              </button>
+            </div>
 
-              {user?.role === 'super_admin' && (
-                <li
-                  className="mobile-nav-item cursor-pointer rounded-xl px-4 py-3 text-sm font-semibold text-[#273c2e] transition hover:bg-[#fff7eb]"
-                  onClick={() => {
-                    navigate('/admin/adminpage');
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  Admin Dashboard
-                </li>
-              )}
-            </ul>
+            {mobileSubmenu ? (
+              <div>
+                <button type="button" className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#2e79e3]" onClick={() => setMobileSubmenu(null)}>
+                  <ChevronDown size={16} className="rotate-90" /> Back
+                </button>
+                <h3 className="mb-3 text-sm font-bold text-[#273c2e]">{mobileSubmenu.title}</h3>
+
+                {mobileSubmenu.type === 'age' && (
+                  <ul className="flex flex-col gap-1">
+                    {['0-18 Months', '18-36 Months', '3-5 Years', '5-7 Years', '7-9 Years', '9-12 Years', '12+ Years'].map((age) => (
+                      <li
+                        key={age}
+                        className="cursor-pointer rounded-xl px-4 py-2 text-sm font-medium text-[#273c2e] transition hover:bg-[#fff7eb]"
+                        onClick={() => {
+                          navigate(`/products?age=${encodeURIComponent(age)}`);
+                          setMobileMenuOpen(false);
+                          setMobileSubmenu(null);
+                        }}
+                      >
+                        {age}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {mobileSubmenu.type === 'categories' && (
+                  <div>
+                    {!mobileSelectedCategory ? (
+                      <ul className="flex flex-col gap-1">
+                        {categories.length > 0 ? (
+                          categories.map((category) => (
+                            <li
+                              key={category.sno}
+                              className="cursor-pointer rounded-xl px-4 py-2 text-sm font-medium text-[#273c2e] transition hover:bg-[#fff7eb]"
+                              onClick={() => handleMobileSelectCategory(category.sno, category.category_name)}
+                            >
+                              <div className="flex items-center justify-between">
+                                {category.category_name}
+                                <ChevronRight size={16} className="text-[#2e79e3]" />
+                              </div>
+                            </li>
+                          ))
+                        ) : (
+                          <li className="px-4 py-2 text-sm text-[#888]">Loading categories...</li>
+                        )}
+                      </ul>
+                    ) : (
+                      <div>
+                        <button type="button" className="mb-3 flex items-center gap-2 text-sm font-medium text-[#2e79e3]" onClick={() => { setMobileSelectedCategory(null); setMobileSubcategories([]); }}>
+                          <ChevronDown size={16} className="rotate-90" /> Back to Categories
+                        </button>
+                        <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-[#273c2e]">{mobileSelectedCategory.name}</h4>
+                        <ul className="flex flex-col gap-1">
+                          {mobileSubcategories.length > 0 ? (
+                            mobileSubcategories.map((subcategory) => (
+                              <li
+                                key={subcategory.sno}
+                                className="cursor-pointer rounded-xl px-4 py-2 text-sm font-medium text-[#273c2e] transition hover:bg-[#fff7eb]"
+                                onClick={() => {
+                                  navigate(`/products/by-subcategory/${encodeURIComponent(subcategory.subcategory_name)}`);
+                                  setMobileMenuOpen(false);
+                                  setMobileSubmenu(null);
+                                  setMobileSelectedCategory(null);
+                                  setMobileSubcategories([]);
+                                }}
+                              >
+                                {subcategory.subcategory_name}
+                              </li>
+                            ))
+                          ) : (
+                            <li className="px-4 py-2 text-sm text-[#888]">No subcategories available</li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {mobileSubmenu.type === 'brands' && (
+                  <ul className="flex flex-col gap-1">
+                    {brands.length > 0 ? (
+                      brands.map((brand, index) => (
+                        <li
+                          key={index}
+                          className="cursor-pointer rounded-xl px-4 py-2 text-sm font-medium text-[#273c2e] transition hover:bg-[#fff7eb]"
+                          onClick={() => {
+                            navigate(`/products?brand=${encodeURIComponent(brand.name)}`);
+                            setMobileMenuOpen(false);
+                            setMobileSubmenu(null);
+                          }}
+                        >
+                          {capitalizeFirstLetter(brand.name)}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="px-4 py-2 text-sm text-[#888]">Loading brands...</li>
+                    )}
+                  </ul>
+                )}
+              </div>
+            ) : (
+              <ul className="mobile-nav-list m-0 flex list-none flex-col gap-1 p-0">
+                {[
+                  { label: 'About', path: '/about' },
+                  { label: 'All Products', path: '/products' },
+                  { label: 'Age', submenu: 'age' },
+                  { label: 'New Arrivals', path: '/products?sort=new' },
+                  { label: 'Categories', submenu: 'categories' },
+                  { label: 'Brand', submenu: 'brands' },
+                  { label: 'Characters & Themes', path: '/products?hasTag=true' },
+                  { label: 'Customized Products', path: '/products?customized=true' },
+                  { label: 'Special Offers', path: '/products?discount=high' },
+                  { label: 'Gift Cards', path: '/giftCards' },
+                ].map(({ label, path, submenu }) => (
+                  <li
+                    key={label}
+                    className="mobile-nav-item cursor-pointer rounded-xl px-4 py-3 text-sm font-semibold text-[#273c2e] transition hover:bg-[#fff7eb]"
+                    onClick={() => {
+                      if (submenu) {
+                        setMobileSubmenu({ type: submenu, title: label });
+                      } else {
+                        navigate(path);
+                        setMobileMenuOpen(false);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      {label}
+                      {submenu && <ChevronRight size={16} className="text-[#2e79e3]" />}
+                    </div>
+                  </li>
+                ))}
+
+                {user?.role === 'super_admin' && (
+                  <li
+                    className="mobile-nav-item cursor-pointer rounded-xl px-4 py-3 text-sm font-semibold text-[#273c2e] transition hover:bg-[#fff7eb]"
+                    onClick={() => {
+                      navigate('/admin/adminpage');
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    Admin Dashboard
+                  </li>
+                )}
+              </ul>
+            )}
 
             <div className="mobile-menu-divider my-4 h-px bg-[#ede6d9]" />
 
@@ -513,7 +656,16 @@ const Header = () => {
                   Logout
                 </button>
               </div>
-            ) : null}
+            ) : (
+              <div className="mobile-auth-section flex flex-col gap-2">
+                <button type="button" className="mobile-auth-btn login-btn w-full rounded-xl bg-[#2e79e3] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1a5a8d]" onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}>
+                  Login
+                </button>
+                <button type="button" className="mobile-auth-btn signup-btn w-full rounded-xl bg-[#f01c71] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#ff4b92]" onClick={() => { navigate('/signup'); setMobileMenuOpen(false); }}>
+                  Sign Up
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

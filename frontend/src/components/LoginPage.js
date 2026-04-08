@@ -81,29 +81,29 @@ const LoginPage = () => {
   };
 
   const inputBaseClass =
-    'w-full rounded-xl border-2 border-[#e0e0e0] bg-[#f9f9f9] px-4 py-3 text-sm text-[#273c2e] transition focus:-translate-y-0.5 focus:border-[#b69e6a] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#b69e6a]/20';
-  const labelClass = 'mb-2 block text-sm font-semibold text-[#273c2e]';
+    'w-full rounded-xl border-2 border-[#e0e0e0] bg-[#f9f9f9] px-3 py-2 text-xs sm:px-3.5 sm:py-2.5 sm:text-xs md:px-4 md:py-2.5 md:text-sm text-[#273c2e] transition focus:-translate-y-0.5 focus:border-[#2e79e3] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#2e79e3]/20';
+  const labelClass = 'mb-1.5 block text-xs font-semibold text-[#273c2e] sm:text-xs md:text-sm';
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <Header />
       <main className="flex flex-1 items-center justify-center px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
-        <div className="w-full max-w-[480px]">
-          <div className="overflow-hidden rounded-[20px] border border-[#ede6d9] bg-white shadow-[0_25px_60px_rgba(39,60,46,0.12)]">
-            <div className="bg-[#2e79e3] px-6 py-5 text-center text-white">
-              <h2 className="text-3xl font-black tracking-tight sm:text-[2rem]">Welcome Back!</h2>
-              <p className="mt-1 text-sm text-white/85 sm:text-base">Login to continue shopping</p>
+        <div className="w-full max-w-xs sm:max-w-sm">
+          <div className="overflow-hidden rounded-2xl border border-[#ede6d9] bg-white shadow-[0_12px_32px_rgba(39,60,46,0.08)]">
+            <div className="bg-[#2e79e3] px-4 py-3 text-center text-white sm:px-5 sm:py-3.5">
+              <h2 className="text-xl font-black tracking-tight sm:text-2xl">Welcome Back!</h2>
+              <p className="mt-0.5 text-xs text-white/85 sm:text-sm">Login to continue shopping</p>
             </div>
 
-            <div className="bg-white px-5 py-6 sm:px-8 sm:py-8">
+            <div className="bg-white px-3 py-5 sm:px-4 sm:py-5">
               {error && (
-                <div className="mb-5 rounded-xl border border-[#fcc] bg-[#ffeeee] px-4 py-3 text-sm font-medium text-[#b42828]">
+                <div className="mb-4 rounded-xl border border-[#fcc] bg-[#ffeeee] px-3 py-2 text-xs font-medium text-[#b42828] sm:mb-4.5 sm:px-3.5 sm:py-2.5 sm:text-xs">
                   {error}
                 </div>
               )}
 
               <form onSubmit={handleSubmit}>
-                <div className="mb-5">
+                <div className="mb-4 sm:mb-4.5">
                   <label htmlFor="email" className={labelClass}>Email:</label>
                   <input
                     type="email"
@@ -117,7 +117,7 @@ const LoginPage = () => {
                   />
                 </div>
 
-                <div className="mb-5">
+                <div className="mb-4 sm:mb-4.5">
                   <label htmlFor="password" className={labelClass}>Password:</label>
                   <div className="relative flex items-center">
                     <input
@@ -141,27 +141,27 @@ const LoginPage = () => {
                   </div>
                 </div>
 
-                <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                <div className="mt-5 flex flex-col gap-2 sm:flex-row">
                   <button
                     type="submit"
-                    className="flex-1 rounded-xl bg-gradient-to-r from-[#bca67a] to-[#a48c65] px-4 py-3 text-sm font-bold uppercase tracking-[0.08em] text-[#fff7eb] shadow-[0_10px_24px_rgba(182,158,106,0.42)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_26px_rgba(182,158,106,0.5)] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
+                    className="flex-1 rounded-lg bg-gradient-to-r from-[#2e79e3] to-[#1c5ac2] px-3 py-2 text-xs font-bold uppercase tracking-wide text-white shadow-[0_6px_16px_rgba(46,121,227,0.25)] transition hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(46,121,227,0.35)] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none sm:py-2.5 sm:text-xs md:px-4 md:py-2.5 md:text-sm"
                     disabled={loading}
                   >
                     {loading ? 'Logging In...' : 'Login'}
                   </button>
                   <button
                     type="button"
-                    className="flex-1 rounded-xl border-2 border-[#ede6d9] bg-[#fff7eb] px-4 py-3 text-sm font-bold uppercase tracking-[0.08em] text-[#273c2e] transition hover:-translate-y-0.5 hover:bg-[#fff1de]"
+                    className="flex-1 rounded-lg border-2 border-[#ede6d9] bg-[#fff7eb] px-3 py-2 text-xs font-bold uppercase tracking-wide text-[#273c2e] transition hover:-translate-y-0.5 hover:bg-[#fff1de] sm:py-2.5 sm:text-xs md:px-4 md:py-2.5 md:text-sm"
                     onClick={handleCancel}
                   >
                     Cancel
                   </button>
                 </div>
 
-                <div className="mt-6 border-t border-[#e0e0e0] pt-6 text-center">
-                  <p className="text-sm text-[#666]">
+                <div className="mt-4 border-t border-[#e0e0e0] pt-4 text-center sm:mt-4.5 sm:pt-4.5">
+                  <p className="text-xs text-[#666] sm:text-xs">
                     Don't have an account?{' '}
-                    <Link to="/signup" className="font-semibold text-[#b69e6a] hover:underline">
+                    <Link to="/signup" className="font-semibold text-[#2e79e3] hover:underline">
                       Sign Up
                     </Link>
                   </p>

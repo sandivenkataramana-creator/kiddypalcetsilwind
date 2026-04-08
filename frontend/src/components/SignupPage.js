@@ -109,30 +109,30 @@ const SignupPage = () => {
   };
 
   const inputBaseClass =
-    'w-full rounded-xl border-2 border-[#e0e0e0] bg-[#f9f9f9] px-4 py-3 text-sm text-[#273c2e] transition focus:-translate-y-0.5 focus:border-[#b69e6a] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#b69e6a]/20';
-  const labelClass = 'mb-2 block text-sm font-semibold text-[#273c2e]';
+    'w-full rounded-lg border-2 border-[#e0e0e0] bg-[#f9f9f9] px-3 py-2 text-xs sm:px-3.5 sm:py-2.5 sm:text-xs md:px-4 md:py-2.5 md:text-sm text-[#273c2e] transition focus:-translate-y-0.5 focus:border-[#2e79e3] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#2e79e3]/20';
+  const labelClass = 'mb-1.5 block text-xs font-semibold text-[#273c2e] sm:text-xs md:text-sm';
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-white">
       <div className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(circle_at_15%_20%,rgba(46,121,227,0.09),transparent_45%),radial-gradient(circle_at_85%_10%,rgba(240,28,113,0.1),transparent_40%),radial-gradient(circle_at_50%_100%,rgba(182,158,106,0.16),transparent_48%)]" />
       <Header />
       <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
-        <div className="w-full max-w-5xl">
-          <div className="overflow-hidden rounded-[30px] border border-white/45 bg-white/95 shadow-[0_30px_80px_rgba(0,0,0,0.2)] backdrop-blur-sm">
-            <div className="relative overflow-hidden bg-[#2e79e3] px-6 py-6 text-[#fff7eb] sm:px-10">
-              <div className="pointer-events-none absolute -right-28 -top-20 h-60 w-60 rounded-full bg-white/20 blur-2xl" />
-              <h2 className="relative text-3xl font-black tracking-tight sm:text-4xl">Sign Up</h2>
-              <p className="relative mt-2 text-sm text-[#fff7eb]/90 sm:text-base">Create your account to start shopping</p>
+        <div className="w-full max-w-2xl">
+          <div className="overflow-hidden rounded-2xl border border-white/45 bg-white/95 shadow-[0_12px_32px_rgba(0,0,0,0.12)] backdrop-blur-sm">
+            <div className="relative overflow-hidden bg-[#2e79e3] px-4 py-4 text-[#fff7eb] sm:px-6 sm:py-5">
+              <div className="pointer-events-none absolute -right-24 -top-16 h-48 w-48 rounded-full bg-white/20 blur-2xl" />
+              <h2 className="relative text-2xl font-black tracking-tight sm:text-3xl">Sign Up</h2>
+              <p className="relative mt-1 text-xs text-[#fff7eb]/90 sm:text-sm">Create your account to start shopping</p>
             </div>
 
             {error && (
-              <div className="mx-5 mt-5 rounded-xl border border-[#fcc] bg-[#ffeeee] px-4 py-3 text-sm font-medium text-[#b42828] sm:mx-8">
+              <div className="mx-4 mt-4 rounded-lg border border-[#fcc] bg-[#ffeeee] px-3 py-2 text-xs font-medium text-[#b42828] sm:mx-5 sm:mt-4.5 sm:px-3.5 sm:py-2.5 sm:text-xs">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="bg-white px-5 py-6 sm:px-8 sm:py-8">
-              <div className="grid gap-4 md:grid-cols-2">
+            <form onSubmit={handleSubmit} className="bg-white px-3 py-4 sm:px-4 sm:py-5">
+              <div className="grid gap-3 md:grid-cols-2">
                 <div>
                   <label htmlFor="firstName" className={labelClass}>First Name:</label>
                   <input
@@ -160,7 +160,7 @@ const SignupPage = () => {
                 </div>
               </div>
 
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
                 <div>
                   <label htmlFor="email" className={labelClass}>Email:</label>
                   <input
@@ -183,7 +183,7 @@ const SignupPage = () => {
                       value={formData.countryCode}
                       onChange={handleChange}
                       aria-label="Country code"
-                      className="min-w-[104px] rounded-xl border-2 border-[#e0e0e0] bg-[#f9f9f9] px-3 py-3 text-sm text-[#273c2e] transition focus:-translate-y-0.5 focus:border-[#b69e6a] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#b69e6a]/20"
+                      className="min-w-[90px] rounded-lg border-2 border-[#e0e0e0] bg-[#f9f9f9] px-2.5 py-2 text-xs sm:px-3 sm:py-2.5 sm:text-xs md:px-3.5 md:py-2.5 md:text-sm text-[#273c2e] transition focus:-translate-y-0.5 focus:border-[#2e79e3] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#2e79e3]/20"
                       required
                     >
                       {COUNTRY_OPTIONS.map((option) => (
@@ -208,7 +208,7 @@ const SignupPage = () => {
                 </div>
               </div>
 
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
                 <div>
                   <label htmlFor="password" className={labelClass}>Password:</label>
                   <div className="relative flex items-center">
@@ -218,14 +218,14 @@ const SignupPage = () => {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className={`${inputBaseClass} pr-12`}
+                      className={`${inputBaseClass} pr-10`}
                       required
                       pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
                       title="Password must be at least 8 characters long and include uppercase, lowercase, number, and special character."
                     />
                     <button
                       type="button"
-                      className="absolute right-3 inline-flex h-7 w-7 items-center justify-center rounded-full text-base transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#b69e6a]/35"
+                      className="absolute right-2.5 inline-flex h-6 w-6 items-center justify-center rounded-full text-sm transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#2e79e3]/35"
                       onClick={() => setShowPassword((prev) => !prev)}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
@@ -243,12 +243,12 @@ const SignupPage = () => {
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      className={`${inputBaseClass} pr-12`}
+                      className={`${inputBaseClass} pr-10`}
                       required
                     />
                     <button
                       type="button"
-                      className="absolute right-3 inline-flex h-7 w-7 items-center justify-center rounded-full text-base transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#b69e6a]/35"
+                      className="absolute right-2.5 inline-flex h-6 w-6 items-center justify-center rounded-full text-sm transition hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#2e79e3]/35"
                       onClick={() => setShowConfirmPassword((prev) => !prev)}
                       aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
                     >
@@ -258,17 +258,17 @@ const SignupPage = () => {
                 </div>
               </div>
 
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-5 flex flex-col gap-2 sm:flex-row">
                 <button
                   type="submit"
-                  className="flex-1 rounded-xl bg-gradient-to-r from-[#bca67a] to-[#a48c65] px-4 py-3 text-sm font-bold uppercase tracking-[0.08em] text-white shadow-[0_10px_24px_rgba(182,158,106,0.42)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_26px_rgba(182,158,106,0.5)] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
+                  className="flex-1 rounded-lg bg-gradient-to-r from-[#2e79e3] to-[#1c5ac2] px-3 py-2 text-xs font-bold uppercase tracking-wide text-white shadow-[0_6px_16px_rgba(46,121,227,0.25)] transition hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(46,121,227,0.35)] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none sm:py-2.5 sm:text-xs md:px-4 md:py-2.5 md:text-sm"
                   disabled={loading}
                 >
                   {loading ? 'Signing Up...' : 'Sign Up'}
                 </button>
                 <button
                   type="button"
-                  className="flex-1 rounded-xl border-2 border-[#ede6d9] bg-[#fff7eb] px-4 py-3 text-sm font-bold uppercase tracking-[0.08em] text-[#273c2e] transition hover:-translate-y-0.5 hover:bg-[#fff1de]"
+                  className="flex-1 rounded-lg border-2 border-[#ede6d9] bg-[#fff7eb] px-3 py-2 text-xs font-bold uppercase tracking-wide text-[#273c2e] transition hover:-translate-y-0.5 hover:bg-[#fff1de] sm:py-2.5 sm:text-xs md:px-4 md:py-2.5 md:text-sm"
                   onClick={handleCancel}
                 >
                   Cancel

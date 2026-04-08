@@ -551,7 +551,7 @@ const filteredProducts = products.filter((p) => {
     ok = ok && p.brand_name?.toLowerCase() === selectedBrandLocal;
   }
 
-  // 💰 Price filter (URL)
+  // � Price filter (URL)
   if (ok && selectedPriceRangeURL) {
     const [minP, maxP] = selectedPriceRangeURL;
     const priceNum = Number(p.price) || 0;
@@ -585,7 +585,9 @@ useEffect(() => {
   });
 
   const pageTitle = discount === 'high'
-    ? 'Sale Picks'
+    ? 'Special Offers'
+    : searchParams.get('customized') === 'true'
+    ? 'Customized Products'
     : isNewArrivalsPage
     ? 'Fresh In Store'
     : hasTag || tagId
@@ -921,7 +923,7 @@ useEffect(() => {
         </section>
 
         {isMobileFiltersOpen && (
-          <div className="fixed inset-0 z-[1200] lg:hidden" role="dialog" aria-modal="true" aria-label="Filter products">
+          <div className="fixed inset-x-0 top-[84px] bottom-0 z-[1100] lg:hidden" role="dialog" aria-modal="true" aria-label="Filter products">
             <button
               type="button"
               aria-label="Close filters"
@@ -929,7 +931,7 @@ useEffect(() => {
               onClick={() => setIsMobileFiltersOpen(false)}
             />
 
-            <div className="absolute left-0 top-0 h-full w-[88%] max-w-[340px] overflow-y-auto border-r border-[#d8e5e7] bg-[#eaf2f3] p-4 shadow-[0_18px_40px_rgba(27,49,55,0.25)]">
+            <div className="absolute left-0 top-0 h-full w-72 overflow-y-auto border-r border-[#d8e5e7] bg-[#eaf2f3] p-4 shadow-[0_18px_40px_rgba(27,49,55,0.25)] rounded-tr-2xl rounded-br-2xl">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#0f6a73]">Filters</p>
                 <button

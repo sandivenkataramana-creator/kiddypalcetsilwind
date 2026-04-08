@@ -420,18 +420,6 @@ const handleClearMainImage = async () => {
 
       <main className="px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 rounded-[28px] border border-emerald-100 bg-white/90 p-4 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur sm:p-6 lg:p-8">
-          <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-700"
-            >
-              Back
-            </button>
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
-              Product Details
-            </span>
-          </div>
-
           <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)]">
             <section className="flex flex-col gap-4 lg:flex-row">
               <div className="flex flex-row gap-3 overflow-x-auto pb-2 lg:max-h-[520px] lg:flex-col lg:overflow-y-auto lg:overflow-x-hidden lg:pb-0">

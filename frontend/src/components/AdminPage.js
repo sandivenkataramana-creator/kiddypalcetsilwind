@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
 import axios from "axios";
@@ -19,6 +19,7 @@ const getAdminHeaders = () => {
 
 const AdminPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
 
    // ✅ State declarations
@@ -26,6 +27,7 @@ const AdminPage = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [selectedProductId, setSelectedProductId] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [manageSort, setManageSort] = useState("latest");
   const [uploadSearch, setUploadSearch] = useState("");
 
 
@@ -33,6 +35,7 @@ const AdminPage = () => {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [message, setMessage] = useState("");
   const [activeTab, setActiveTab] = useState("add");
+  const tabContentRef = useRef(null);
   // 🏷️ Brand states
   const [newBrandName, setNewBrandName] = useState("");
   const [newBrandLogo, setNewBrandLogo] = useState(null);
@@ -503,60 +506,57 @@ const handleBrandFilesChange = (e) => {
   const [editStockValue, setEditStockValue] = useState('');
 
 useEffect(() => {
-  let hasAdminAccess = false;
-  let adminData = null;
+  const verifyAndLoadAdmin = async () => {
+    setIsVerifying(true);
 
-  // Method 1: Check for adminToken and adminUser (from AdminLogin)
-  const adminToken = localStorage.getItem("adminToken");
-  const admin = localStorage.getItem("adminUser");
+    const adminToken = localStorage.getItem("adminToken");
+    if (!adminToken) {
+      localStorage.removeItem("adminUser");
+      navigate("/admin/login", { replace: true });
+      setIsVerifying(false);
+      return;
+    }
 
-  if (adminToken && admin) {
     try {
-      const parsedAdmin = JSON.parse(admin);
-      if (parsedAdmin?.role === "admin" || parsedAdmin?.role === "super_admin") {
-        hasAdminAccess = true;
-        adminData = parsedAdmin;
+      const res = await fetch(`${API_BASE_URL}/api/admin/verify`, {
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+      });
+
+      if (!res.ok) {
+        localStorage.removeItem("adminToken");
+        localStorage.removeItem("adminUser");
+        navigate("/admin/login", { replace: true });
+        setIsVerifying(false);
+        return;
       }
+
+      const data = await res.json();
+      if (!data?.success || !data?.admin) {
+        localStorage.removeItem("adminToken");
+        localStorage.removeItem("adminUser");
+        navigate("/admin/login", { replace: true });
+        setIsVerifying(false);
+        return;
+      }
+
+      setAdminUser(data.admin);
+      localStorage.setItem("adminUser", JSON.stringify(data.admin));
+
+      fetchProducts();
+      fetchTags();
+      if (typeof fetchStores === 'function') fetchStores();
     } catch (error) {
-      // Ignore parse errors
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminUser");
+      navigate("/admin/login", { replace: true });
+    } finally {
+      setIsVerifying(false);
     }
-  }
+  };
 
-  // Method 2: Check if user logged in via profile has admin role (from LoginPage)
-  if (!hasAdminAccess) {
-    const token = localStorage.getItem("token");
-    const user = localStorage.getItem("user");
-
-    if (token && user) {
-      try {
-        const parsedUser = JSON.parse(user);
-        if (parsedUser?.role === "admin" || parsedUser?.role === "super_admin") {
-          hasAdminAccess = true;
-          adminData = parsedUser;
-          // Also set adminToken and adminUser for consistency with other components
-          localStorage.setItem("adminToken", token);
-          localStorage.setItem("adminUser", JSON.stringify(parsedUser));
-        }
-      } catch (error) {
-        // Ignore parse errors
-      }
-    }
-  }
-
-  if (!hasAdminAccess) {
-    navigate("/admin/login");
-    return;
-  }
-
-  // Set admin user data if found
-  if (adminData) {
-    setAdminUser(adminData);
-  }
-
-  fetchProducts(); // ✅ THIS fixes Manage Products (0)
-  fetchTags(); // ✅ Fetch tags for tag management section
-  // Fetch stores for admin stores tab
-  if (typeof fetchStores === 'function') fetchStores();
+  verifyAndLoadAdmin();
 }, [navigate]);
 
 
@@ -2304,6 +2304,33 @@ const uploadOptions = products.map((p) => ({
   label: `${p.product_code ? p.product_code + " - " : ""}${p.name} - ₹${p.price} (Stock: ${p.stock_quantity})`
 }));
 
+const filteredManageProducts = products.filter((p) => {
+  const query = searchQuery.trim().toLowerCase();
+  if (!query) return true;
+  const name = (p.name || p.product_name || "").toLowerCase();
+  const code = (p.product_code || "").toLowerCase();
+  return name.includes(query) || code.includes(query);
+});
+
+const sortedManageProducts = [...filteredManageProducts].sort((a, b) => {
+  if (manageSort === "name_asc") {
+    return (a.name || a.product_name || "").localeCompare(b.name || b.product_name || "");
+  }
+  if (manageSort === "name_desc") {
+    return (b.name || b.product_name || "").localeCompare(a.name || a.product_name || "");
+  }
+  if (manageSort === "price_low") {
+    return Number(a.price || 0) - Number(b.price || 0);
+  }
+  if (manageSort === "price_high") {
+    return Number(b.price || 0) - Number(a.price || 0);
+  }
+  if (manageSort === "stock_low") {
+    return Number(a.stock_quantity ?? 0) - Number(b.stock_quantity ?? 0);
+  }
+  return Number(b.id || 0) - Number(a.id || 0);
+});
+
 
 // 📥 Download Product Excel Template
 const downloadProductTemplate = () => {
@@ -2322,9 +2349,57 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
   document.body.removeChild(element);
 };
 
+const validAdminTabs = [
+  'add',
+  'upload',
+  'manage',
+  'billing',
+  'giftcard',
+  'orders',
+  'announcement',
+  'brands',
+  'tags',
+  'stores',
+  'about',
+  'careers',
+  'categories',
+  'bulkUploadHistory',
+];
+
+const switchAdminTab = (tab, afterSwitch) => {
+  if (!validAdminTabs.includes(tab)) return;
+
+  setActiveTab(tab);
+  if (typeof afterSwitch === 'function') afterSwitch();
+
+  const params = new URLSearchParams(location.search);
+  params.set('tab', tab);
+  navigate({ pathname: location.pathname, search: `?${params.toString()}` }, { replace: false });
+
+  requestAnimationFrame(() => {
+    tabContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+};
+
+useEffect(() => {
+  const params = new URLSearchParams(location.search);
+  const tab = params.get('tab');
+  if (tab && validAdminTabs.includes(tab) && tab !== activeTab) {
+    setActiveTab(tab);
+  }
+}, [location.search, activeTab]);
+
+if (isVerifying) {
+  return (
+    <div className="grid min-h-screen place-items-center bg-slate-50 text-slate-600">
+      Verifying admin session...
+    </div>
+  );
+}
+
 
   return (
-    <div className="admin-page min-h-screen bg-gradient-to-b from-slate-50 via-white to-emerald-50 text-slate-900">
+    <div className="admin-page min-h-screen bg-gradient-to-b from-slate-50 via-white to-emerald-50 text-slate-900 [&_button]:inline-flex [&_button]:min-h-[40px] [&_button]:items-center [&_button]:justify-center [&_button]:whitespace-nowrap [&_button]:align-middle [&_input]:w-full [&_select]:w-full [&_textarea]:w-full [&_input]:rounded-xl [&_select]:rounded-xl [&_textarea]:rounded-xl [&_input]:border-slate-200 [&_select]:border-slate-200 [&_textarea]:border-slate-200 [&_.tab-navigation]:grid [&_.tab-navigation]:grid-cols-2 [&_.tab-navigation]:gap-3 sm:[&_.tab-navigation]:grid-cols-3 lg:[&_.tab-navigation]:grid-cols-4 xl:[&_.tab-navigation]:grid-cols-6 [&_.tab-btn]:w-full [&_.tab-btn]:min-h-[56px] [&_.tab-btn]:rounded-2xl [&_.tab-btn]:px-3 [&_.tab-btn]:py-3 [&_.tab-btn]:text-[13px] [&_.tab-btn]:font-semibold [&_.tab-btn]:normal-case [&_.tab-btn]:tracking-normal [&_.tab-btn]:leading-tight [&_.tab-btn]:text-center [&_.tab-btn]:shadow-sm [&_.tab-btn]:transition [&_.tab-btn:hover]:shadow-md">
       <Header />
       <main className="admin-content flex-1 px-4 py-6 sm:px-6 lg:px-8">
         <div className="admin-container mx-auto w-full max-w-[1300px]">
@@ -2338,118 +2413,120 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
           </div>
           
           {/* Tab Navigation */}
-          <div className="tab-navigation mb-5 flex flex-wrap justify-center gap-3">
+          <div className="tab-navigation mb-5">
   <button 
-    className={`tab-btn rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold uppercase tracking-wide text-slate-700 transition hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md ${activeTab === 'add' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
-    onClick={() => { setActiveTab('add'); setMessage(''); }}
+    className={`tab-btn rounded-full border border-blue-200 bg-white text-slate-700 ${activeTab === 'add' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
+    onClick={() => switchAdminTab('add', () => setMessage(''))}
   >
     ➕ Add New Product
   </button>
 
   <button 
-    className={`tab-btn rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold uppercase tracking-wide text-slate-700 transition hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md ${activeTab === 'upload' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
-    onClick={() => { setActiveTab('upload'); setMessage(''); }}
+    className={`tab-btn rounded-full border border-blue-200 bg-white text-slate-700 ${activeTab === 'upload' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
+    onClick={() => switchAdminTab('upload', () => setMessage(''))}
   >
     📸 Upload Product Images
   </button>
 
   <button 
-    className={`tab-btn rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold uppercase tracking-wide text-slate-700 transition hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md ${activeTab === 'manage' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
-    onClick={() => { setActiveTab('manage'); setMessage(''); }}
+    className={`tab-btn rounded-full border border-blue-200 bg-white text-slate-700 ${activeTab === 'manage' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
+    onClick={() => switchAdminTab('manage', () => setMessage(''))}
   >
     📦 Manage Products
   </button>
 
   <button 
-    className={`tab-btn rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold uppercase tracking-wide text-slate-700 transition hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md ${activeTab === 'billing' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
-    onClick={() => { setActiveTab('billing'); setMessage(''); }}
+    className={`tab-btn rounded-full border border-blue-200 bg-white text-slate-700 ${activeTab === 'billing' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
+    onClick={() => switchAdminTab('billing', () => setMessage(''))}
   >
     💳 Billing (POS)
   </button>
 
   {/* ✅ New Gift Card Tab */}
   <button 
-    className={`tab-btn rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold uppercase tracking-wide text-slate-700 transition hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md ${activeTab === 'giftcard' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
-    onClick={() => { setActiveTab('giftcard'); setMessage(''); }}
+    className={`tab-btn rounded-full border border-blue-200 bg-white text-slate-700 ${activeTab === 'giftcard' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
+    onClick={() => switchAdminTab('giftcard', () => setMessage(''))}
   >
     🎁 Add Gift Card
   </button>
 
   <button 
-    className={`tab-btn rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold uppercase tracking-wide text-slate-700 transition hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md ${activeTab === 'orders' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
-    onClick={() => { setActiveTab('orders'); setMessage(''); }}
+    className={`tab-btn rounded-full border border-blue-200 bg-white text-slate-700 ${activeTab === 'orders' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
+    onClick={() => switchAdminTab('orders', () => setMessage(''))}
   >
     📬 Orders
   </button>
 
   <button 
-  className={`tab-btn rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold uppercase tracking-wide text-slate-700 transition hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md ${activeTab === 'announcement' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
-  onClick={() => setActiveTab('announcement')}
+  className={`tab-btn rounded-full border border-blue-200 bg-white text-slate-700 ${activeTab === 'announcement' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
+  onClick={() => switchAdminTab('announcement')}
   >
     📢 Announcement
   </button>
 
 
   <button 
-   className={`tab-btn rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold uppercase tracking-wide text-slate-700 transition hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md ${activeTab === 'announcement' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
-  onClick={() => setActiveTab("brands")}>
+    className={`tab-btn rounded-full border border-blue-200 bg-white text-slate-700 ${activeTab === 'brands' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
+  onClick={() => switchAdminTab('brands')}>
     Brands
   </button>
 
   <button  
-    className={`tab-btn rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold uppercase tracking-wide text-slate-700 transition hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md ${activeTab === 'tags' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
-    onClick={() => { setActiveTab('tags'); setTagMessage(''); }}
+    className={`tab-btn rounded-full border border-blue-200 bg-white text-slate-700 ${activeTab === 'tags' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
+    onClick={() => switchAdminTab('tags', () => setTagMessage(''))}
   >
     🎭 Manage Tags
   </button>
 
   <button
-    className={`tab-btn rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold uppercase tracking-wide text-slate-700 transition hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md ${activeTab === 'stores' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
-    onClick={() => { setActiveTab('stores'); setStoreMessage && setStoreMessage(''); fetchStores && fetchStores(); }}
+    className={`tab-btn rounded-full border border-blue-200 bg-white text-slate-700 ${activeTab === 'stores' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
+    onClick={() => switchAdminTab('stores', () => { if (setStoreMessage) setStoreMessage(''); if (fetchStores) fetchStores(); })}
   >
     🏬 Manage Stores
   </button>
 
 <button 
-  className={`tab-btn rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold uppercase tracking-wide text-slate-700 transition hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md ${activeTab === 'about' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
-  onClick={() => setActiveTab('about')}
+  className={`tab-btn rounded-full border border-blue-200 bg-white text-slate-700 ${activeTab === 'about' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
+  onClick={() => switchAdminTab('about')}
 >
   📝 Edit About Page
 </button>
 
 <button 
-  className={`tab-btn rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold uppercase tracking-wide text-slate-700 transition hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md ${activeTab === 'careers' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
-  onClick={() => setActiveTab('careers')}
+  className={`tab-btn rounded-full border border-blue-200 bg-white text-slate-700 ${activeTab === 'careers' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
+  onClick={() => switchAdminTab('careers')}
 >
   👔 Edit Careers Page
 </button>
 
 
 <button
-  className={`tab-btn rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold uppercase tracking-wide text-slate-700 transition hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md ${activeTab === 'categories' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
-  onClick={() => setActiveTab('categories')}
+  className={`tab-btn rounded-full border border-blue-200 bg-white text-slate-700 ${activeTab === 'categories' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
+  onClick={() => switchAdminTab('categories')}
 >
   🗂️ Categories
 </button>
 
 <button
-  className={`tab-btn rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-bold uppercase tracking-wide text-slate-700 transition hover:-translate-y-1 hover:bg-blue-50 hover:shadow-md ${activeTab === 'bulkUploadHistory' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
-  onClick={() => { setActiveTab('bulkUploadHistory'); fetchUploadHistory(1); }}
+  className={`tab-btn rounded-full border border-blue-200 bg-white text-slate-700 ${activeTab === 'bulkUploadHistory' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
+  onClick={() => switchAdminTab('bulkUploadHistory', () => fetchUploadHistory(1))}
 >
   📊 Upload History
 </button>
 
 </div>
 
+  <div ref={tabContentRef} />
+
 
                    {/* Add New Product Tab */}
                    {activeTab === 'add' && (
             <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_24px_60px_rgba(39,60,46,0.12)] sm:p-8">
-              <h2>Add New Product</h2>
+              <h2 className="text-2xl font-black text-slate-900">Add New Product</h2>
               <form onSubmit={handleAddProduct} className="mt-6 flex flex-col gap-5">
 
                 {/* Product Name */}
-                <div className="form-row grid grid-cols-1 gap-5 lg:grid-cols-2">
+                <div className="form-row grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
                 <div className="flex flex-col gap-2">
                   <label htmlFor="product_name" className="text-sm font-semibold text-slate-700">Product Name *</label>
                   <input
@@ -2460,7 +2537,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                     onChange={handleNewProductChange}
                     placeholder="e.g., Building Blocks Set"
                     required
-                    className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                   />
                 </div>
 
@@ -2474,7 +2551,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                       onChange={handleNewProductChange}
                       placeholder="Enter your product code"
                       // required
-                      className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
                     
@@ -2488,7 +2565,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                       value={newProduct.category_id || ''}
                       onChange={handleCategoryChange}
                       required
-                      className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     >
                       <option value="">Select Category</option>
                       {categories.map(cat => (
@@ -2505,7 +2582,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                       value={newProduct.subcategory_id || ''}
                       onChange={(e) => setNewProduct({ ...newProduct, subcategory_id: e.target.value })}
                       required
-                      className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     >
                       <option value="">Select Subcategory</option>
                       {subcategories.map(sub => (
@@ -2517,7 +2594,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
 
                 {/* Descriptions and Details */}
                 {/* <div className="form-row"> */}
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 md:col-span-2 xl:col-span-1">
                     <label htmlFor="product_description" className="text-sm font-semibold text-slate-700">Description</label>
                     <textarea
                       id="product_description"
@@ -2526,11 +2603,11 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                       onChange={handleNewProductChange}
                       placeholder="Enter product description..."
                       rows="3"
-                      className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
 
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 md:col-span-2 xl:col-span-1">
                     <label htmlFor="product_highlights" className="text-sm font-semibold text-slate-700">Product Highlights</label>
                     <textarea
                       id="product_highlights"
@@ -2539,13 +2616,13 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                       onChange={handleNewProductChange}
                       placeholder="Enter product highlights..."
                       rows="3"
-                      className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
 
                  
 
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 md:col-span-2 xl:col-span-1">
                     <label htmlFor="specifications" className="text-sm font-semibold text-slate-700">Product Specifications</label>
                     <textarea
                       id="specifications"
@@ -2554,7 +2631,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                       onChange={handleNewProductChange}
                       placeholder="Enter product specifications..."
                       rows="3"
-                      className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
 
@@ -2566,7 +2643,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                       name="brand_name"
                       value={newProduct.brand_name}
                       onChange={handleNewProductChange}
-                      className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     >
                       <option value="">Select Brand</option>
                       <option value="Picasso">Picasso</option>
@@ -2598,7 +2675,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                       placeholder="Enter MRP"
                       min="0"
                       // required
-                      className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
 
@@ -2614,7 +2691,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                       min="0"
                       max="100"
                       // required
-                      className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
 
@@ -2631,7 +2708,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                       step="0.00"
                       min="0"
                       required
-                      className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
 
@@ -2646,7 +2723,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                       placeholder="Enter stock quantity"
                       min="0"
                       required
-                      className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     />
                   </div>
 
@@ -2659,7 +2736,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                       name="age_range"
                       value={newProduct.age_range}
                       onChange={handleNewProductChange}
-                      className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     >
                       <option value="">Select Age Range</option>
                       <option value="0-18 Months">0-18 Months</option>
@@ -2679,7 +2756,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                       name="gender"
                       value={newProduct.gender || ''}
                       onChange={handleNewProductChange}
-                      className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                     >
                       <option value="">Select Gender</option>
                       <option value="Boys">Boys</option>
@@ -2704,7 +2781,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                   />
                   {newProductImages.length > 0 && (
                     <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-                      <p>? Selected {newProductImages.length} image{newProductImages.length > 1 ? 's' : ''}:</p>
+                      <p>Selected {newProductImages.length} image{newProductImages.length > 1 ? 's' : ''}:</p>
                       <ul className="mt-2 list-disc pl-5">
                         {newProductImages.map((file, index) => (
                           <li key={`${file.name}-${index}`}>
@@ -2722,15 +2799,14 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                 <button type="submit" className="inline-flex items-center justify-center rounded-xl bg-rose-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-slate-300" disabled={loading}>
                   {loading ? '⏳ Adding Product...' : '➕ Add Product'}
                 </button>
-              </form><br></br>
-              <br></br>
+              </form>
 
 
               
              
               {/* Bulk Upload via Excel */}
                   <div className="space-y-3">
-                <h3 className="text-lg font-bold text-slate-900">?? Bulk Upload via Excel</h3>
+                <h3 className="text-lg font-bold text-slate-900">Bulk Upload via Excel</h3>
                 <p className="text-sm text-slate-600">
                   Upload multiple products at once using an Excel file (.xlsx or .xls)
                 </p>
@@ -2752,7 +2828,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                   </button>
                 </form>
 
-                {bulkMessage && <p className="bulk-message">{bulkMessage}</p>}
+                {bulkMessage && <p className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">{bulkMessage}</p>}
 
                 {bulkMessage && bulkMessage.includes('✅ Processed') && (
                   <div className="mt-4 flex flex-wrap gap-3 rounded-md bg-emerald-50 p-3">
@@ -2771,16 +2847,14 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                   </div>
                 )}
                 
-
-
- <div className="excel-format-box">
-                  <h4>🧾 Excel Format Example:</h4>
-                  <ul>
-                    <li><b>Required Columns:</b> name, description, price, brand_name, category, subcategory_id, stock_quantity</li>
-                    <li><b>Optional Columns:</b> age_range, gender, highlights, specifications</li>
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-slate-700">
+                  <h4 className="mb-2 text-base font-bold text-slate-900">Excel format example</h4>
+                  <ul className="list-disc space-y-1 pl-5">
+                    <li><strong>Required:</strong> name, description, price, brand_name, category, subcategory_id, stock_quantity</li>
+                    <li><strong>Optional:</strong> age_range, gender, highlights, specifications</li>
                     <li>Images can be added later manually.</li>
                   </ul>
-                </div> 
+                </div>
 
 
 
@@ -2802,37 +2876,38 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
               <h2 className="mb-5 text-2xl font-black text-slate-900">📊 Bulk Upload History</h2>
               
               {uploadHistoryLoading ? (
-                <p>Loading upload history...</p>
+                <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">Loading upload history...</p>
               ) : uploadHistory.length === 0 ? (
-                <p className="empty-state">No upload history found yet</p>
+                <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">No upload history found yet</p>
               ) : (
                 <>
-                  <div className="upload-history-table-wrapper">
-                    <table className="upload-history-table">
+                  <div className="overflow-x-auto rounded-xl border border-slate-200">
+                    <table className="min-w-[760px] w-full border-collapse bg-white">
                       <thead>
-                        <tr>
-                          <th>Upload Date</th>
-                          <th>Total Rows</th>
-                          <th>Accepted</th>
-                          <th>Rejected</th>
-                          <th>Actions</th>
+                        <tr className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
+                          <th className="px-3 py-3">Upload Date</th>
+                          <th className="px-3 py-3 text-center">Total Rows</th>
+                          <th className="px-3 py-3 text-center">Accepted</th>
+                          <th className="px-3 py-3 text-center">Rejected</th>
+                          <th className="px-3 py-3 text-center">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {uploadHistory.map((upload) => (
-                          <tr key={upload.upload_id}>
-                            <td>{new Date(upload.uploaded_at).toLocaleString()}</td>
-                            <td>{upload.total_rows}</td>
-                            <td className="success">{upload.accepted_rows}</td>
-                            <td className="error">{upload.rejected_rows}</td>
-                            <td className="flex flex-wrap justify-center gap-2">
+                          <tr key={upload.upload_id} className="border-t border-slate-100 text-sm text-slate-700">
+                            <td className="px-3 py-3">{new Date(upload.uploaded_at).toLocaleString()}</td>
+                            <td className="px-3 py-3 text-center font-medium">{upload.total_rows}</td>
+                            <td className="px-3 py-3 text-center font-semibold text-emerald-700">{upload.accepted_rows}</td>
+                            <td className="px-3 py-3 text-center font-semibold text-rose-700">{upload.rejected_rows}</td>
+                            <td className="px-3 py-3">
+                              <div className="flex flex-wrap justify-center gap-2">
                               {upload.accepted_rows > 0 && (
                                 <button
                                   onClick={() => downloadReportFile('accepted', `accepted_products_${upload.upload_id}`)}
                                   className="rounded-lg bg-emerald-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-600"
                                   title="Download accepted/inserted products"
                                 >
-                                  ✅ Accepted
+                                  Accepted
                                 </button>
                               )}
                               {upload.rejected_rows > 0 && (
@@ -2841,7 +2916,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                                   className="rounded-lg bg-rose-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-600"
                                   title="Download rejected products with reasons"
                                 >
-                                  ❌ Rejected
+                                  Rejected
                                 </button>
                               )}
                               {/* Delete record */}
@@ -2850,8 +2925,9 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                                 className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
                                 title="Delete upload history record"
                               >
-                                🗑️ Delete
+                                Delete
                               </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -2968,7 +3044,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                       >
 
                         {/* Order header */}
-                        <div className="mb-5 flex items-start justify-between border-b-2 border-amber-200 pb-4">
+                        <div className="mb-5 flex flex-col gap-3 border-b-2 border-amber-200 pb-4 sm:flex-row sm:items-start sm:justify-between">
                           <div>
                             <h3 className="mb-2 text-2xl font-bold text-emerald-950">
                               Order #{order.order_number}
@@ -3016,28 +3092,30 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                           </h4>
                           <div className="rounded-lg bg-white p-4">
                             {Array.isArray(order.items) && order.items.length > 0 ? (
-                              <table className="w-full border-collapse">
-                                <thead>
-                                  <tr className="border-b-2 border-amber-100">
-                                    <th className="p-2.5 text-left">Product Name</th>
-                                    <th className="p-2.5 text-center">Quantity</th>
-                                    <th className="p-2.5 text-right">Price</th>
-                                    <th className="p-2.5 text-right">Total</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {order.items.map((item, idx) => (
-                                    <tr key={idx} className="border-b border-slate-100">
-                                      <td className="px-2.5 py-3">{item.product_name}</td>
-                                      <td className="px-2.5 py-3 text-center">{item.quantity}</td>
-                                      <td className="px-2.5 py-3 text-right">₹{item.product_price}</td>
-                                      <td className="px-2.5 py-3 text-right font-semibold">
-                                        ₹{item.item_total}
-                                      </td>
+                              <div className="overflow-x-auto">
+                                <table className="min-w-[620px] w-full border-collapse">
+                                  <thead>
+                                    <tr className="border-b-2 border-amber-100">
+                                      <th className="p-2.5 text-left">Product Name</th>
+                                      <th className="p-2.5 text-center">Quantity</th>
+                                      <th className="p-2.5 text-right">Price</th>
+                                      <th className="p-2.5 text-right">Total</th>
                                     </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                                  </thead>
+                                  <tbody>
+                                    {order.items.map((item, idx) => (
+                                      <tr key={idx} className="border-b border-slate-100">
+                                        <td className="px-2.5 py-3">{item.product_name}</td>
+                                        <td className="px-2.5 py-3 text-center">{item.quantity}</td>
+                                        <td className="px-2.5 py-3 text-right">₹{item.product_price}</td>
+                                        <td className="px-2.5 py-3 text-right font-semibold">
+                                          ₹{item.item_total}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
                             ) : (
                               <p>No items found</p>
                             )}
@@ -3066,36 +3144,36 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                         
 
                         {order.order_status === 'pending' && (
-                          <div className="flex justify-end gap-3">
+                          <div className="flex flex-wrap justify-end gap-3">
     
     {/* Cancel Button */}
     <button
       onClick={() => handleCancelOrder(order.id)}
-      className="rounded-lg bg-red-500 px-6 py-3 font-semibold text-white transition hover:bg-red-600"
+      className="min-h-[44px] rounded-lg bg-red-500 px-6 py-3 font-semibold text-white transition hover:bg-red-600"
     >
-      ✗ Cancel Order
+      Cancel Order
     </button>
 
     {/* Accept Button */}
     <button
       onClick={() => handleAcceptOrder(order.id)}
-      className="rounded-lg bg-emerald-500 px-6 py-3 font-semibold text-white transition hover:bg-emerald-600"
+      className="min-h-[44px] rounded-lg bg-emerald-500 px-6 py-3 font-semibold text-white transition hover:bg-emerald-600"
     >
-      ✓ Accept Order
+      Accept Order
     </button>
 
   </div>
 )}
 
                         {order.order_status === 'accepted' && (
-  <div className="flex justify-end gap-3">
+  <div className="flex flex-wrap justify-end gap-3">
     
     {/* Cancel Button */}
     <button
       onClick={() => handleCancelOrder(order.id)}
-      className="rounded-lg bg-red-500 px-6 py-3 font-semibold text-white transition hover:bg-red-600"
+      className="min-h-[44px] rounded-lg bg-red-500 px-6 py-3 font-semibold text-white transition hover:bg-red-600"
     >
-      ✗ Cancel Order
+      Cancel Order
     </button>
 
   </div>
@@ -3114,7 +3192,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
     <h2 className="mb-4 text-2xl font-black text-slate-900">📢 Top Announcements</h2>
 
     <div className="mb-3">
-      <form onSubmit={handleAddAnnouncement} className="flex items-center gap-2">
+      <form onSubmit={handleAddAnnouncement} className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
         <input
           type="text"
           placeholder="Enter announcement text (max 2000 chars)"
@@ -3122,7 +3200,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
           onChange={(e) => setNewAnnouncementText(e.target.value)}
           className="flex-1 rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
         />
-        <button type="submit" className="inline-flex items-center justify-center rounded-xl bg-rose-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-600">+ Add</button>
+        <button type="submit" className="rounded-xl bg-rose-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-600 sm:w-auto">Add</button>
       </form>
     </div>
 
@@ -3136,7 +3214,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
       ) : (
         <div className="flex flex-col gap-2.5">
           {announcements.map((a) => (
-            <div key={a.id} className="flex items-center gap-2 rounded-lg border border-slate-100 p-2">
+            <div key={a.id} className="flex flex-col gap-2 rounded-lg border border-slate-100 p-2 sm:flex-row sm:items-center">
               {editingAnnouncementId === a.id ? (
                 <>
                   <input
@@ -3150,8 +3228,10 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
               ) : (
                 <>
                   <div className="flex-1 text-sm text-slate-700">{a.text}</div>
-                  <button onClick={() => startEditAnnouncement(a)} className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700">?? Edit</button>
-                  <button onClick={() => deleteAnnouncement(a.id)} className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700">??? Delete</button>
+                  <div className="flex gap-2 sm:ml-auto">
+                    <button onClick={() => startEditAnnouncement(a)} className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700">Edit</button>
+                    <button onClick={() => deleteAnnouncement(a.id)} className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700">Delete</button>
+                  </div>
                 </>
               )}
             </div>
@@ -3179,7 +3259,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
     </div>
 
     <button
-      className="inline-flex items-center justify-center rounded-xl bg-rose-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-slate-300"
+      className="mt-4 rounded-xl bg-rose-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-slate-300"
       disabled={savingAbout}
       onClick={async () => {
         try {
@@ -3204,162 +3284,144 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
 
 {activeTab === "categories" && (
   <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_24px_60px_rgba(39,60,46,0.12)] sm:p-8">
+    <h2 className="mb-5 text-2xl font-black text-slate-900">Categories & Subcategories</h2>
 
-    {/* ADD CATEGORY */}
-    <div className="category-section">
-      <h3>➕ Add Category</h3>
-      <form onSubmit={handleAddCategory} className="category-form">
-        <input
-          type="text"
-          placeholder="Category name"
-          value={newCategoryName}
-          onChange={(e) => setNewCategoryName(e.target.value)}
-        />
-        <button>Add</button>
-      </form>
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <h3 className="mb-3 text-lg font-bold text-slate-900">Add Category</h3>
+        <form onSubmit={handleAddCategory} className="flex flex-col gap-2 sm:flex-row">
+          <input
+            type="text"
+            placeholder="Category name"
+            value={newCategoryName}
+            onChange={(e) => setNewCategoryName(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+          />
+          <button className="min-h-[42px] rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">Add</button>
+        </form>
+      </section>
 
+      <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <h3 className="mb-3 text-lg font-bold text-slate-900">Add Subcategory</h3>
+        <form onSubmit={handleAddSubcategory} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr,1fr,auto]">
+          <select
+            value={selectedParentCategoryId}
+            onChange={(e) => setSelectedParentCategoryId(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+          >
+            <option value="">Parent Category</option>
+            {categories.map(c => (
+              <option key={c.sno} value={c.sno}>
+                {c.category_name}
+              </option>
+            ))}
+          </select>
 
-      
+          <input
+            type="text"
+            placeholder="Subcategory name"
+            value={newSubcategoryName}
+            onChange={(e) => setNewSubcategoryName(e.target.value)}
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+          />
+
+          <button className="min-h-[42px] rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">Add</button>
+        </form>
+      </section>
     </div>
 
-    {/* ADD SUBCATEGORY */}
-    <div className="category-section">
-      <h3>➕ Add Subcategory</h3>
-      <form onSubmit={handleAddSubcategory} className="category-form">
-        <select
-          value={selectedParentCategoryId}
-          onChange={(e) => setSelectedParentCategoryId(e.target.value)}
-        >
-          <option value="">Parent Category</option>
-          {categories.map(c => (
-            <option key={c.sno} value={c.sno}>
-              {c.category_name}
-            </option>
-          ))}
-        </select>
-
-        <input
-          type="text"
-          placeholder="Subcategory name"
-          value={newSubcategoryName}
-          onChange={(e) => setNewSubcategoryName(e.target.value)}
-        />
-        <button>Add</button>
-      </form>
-    </div>
-
-   
-
-
-    {/* CATEGORIES LIST */}
-
-    {/* Search placed above the lists */}
-    <div className="mb-1.5 mt-3">
+    <div className="mb-3 mt-5">
       <input
-        placeholder="🔍 Search categories or subcategories..."
+        placeholder="Search categories or subcategories"
         value={categoriesSearch}
         onChange={(e) => setCategoriesSearch(e.target.value)}
-        className="category-search w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+        className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
       />
     </div>
 
-    <div className="category-section">
-     
-
-      {(() => {
-        const q = categoriesSearch.trim().toLowerCase();
-        if (!q) {
-          return <div className="placeholder-box">📁 Categories</div>;
-        }
-        const matchedCats = categories.filter(c => c.category_name.toLowerCase().includes(q));
-        if (matchedCats.length === 0) return <div>No categories found</div>;
-        return matchedCats.map(cat => (
-          <div key={cat.sno} className="category-row">
-            {editing?.type === "category" && editing.id === cat.sno ? (
-              <div className="category-edit">
-                <input
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                />
-                <button className="btn-save" onClick={saveEdit}>Save</button>
-                <button className="btn-cancel" onClick={cancelEdit}>Cancel</button>
-              </div>
-            ) : (
-              <>
-                <strong>{cat.category_name}</strong>
-                <div className="category-actions">
-                  <button
-                    className="btn-edit"
-                    onClick={() => startEdit("category", { id: cat.sno, name: cat.category_name })}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn-delete"
-                    onClick={() => deleteItem("category", cat.sno)}
-                  >
-                    Delete
-                  </button>
+    <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <section className="rounded-2xl border border-slate-200 bg-white p-4">
+        <h3 className="mb-3 text-base font-bold text-slate-900">Categories</h3>
+        {(() => {
+          const q = categoriesSearch.trim().toLowerCase();
+          const matchedCats = q ? categories.filter(c => c.category_name.toLowerCase().includes(q)) : categories;
+          if (matchedCats.length === 0) return <div className="rounded-lg bg-slate-50 p-3 text-sm text-slate-500">No categories found</div>;
+          return (
+            <div className="space-y-2">
+              {matchedCats.map(cat => (
+                <div key={cat.sno} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  {editing?.type === "category" && editing.id === cat.sno ? (
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr,auto,auto]">
+                      <input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      />
+                      <button className="min-h-[40px] rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700" onClick={saveEdit}>Save</button>
+                      <button className="min-h-[40px] rounded-lg bg-slate-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-600" onClick={cancelEdit}>Cancel</button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <strong className="text-sm text-slate-800">{cat.category_name}</strong>
+                      <div className="flex gap-2">
+                        <button className="min-h-[38px] rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700" onClick={() => startEdit("category", { id: cat.sno, name: cat.category_name })}>Edit</button>
+                        <button className="min-h-[38px] rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700" onClick={() => deleteItem("category", cat.sno)}>Delete</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </>
-            )}
-          </div>
-        ));
-      })()}
-    </div>
+              ))}
+            </div>
+          );
+        })()}
+      </section>
 
-    {/* SUBCATEGORIES LIST */}
-    <div className="category-section">
-      
-
-      {(() => {
-        const q = categoriesSearch.trim().toLowerCase();
-        if (!q) return <div className="placeholder-box">📁 Subcategories</div>;
-        const matchedSubs = allSubcategories.filter(s => s.subcategory_name.toLowerCase().includes(q));
-        if (matchedSubs.length === 0) return <div>No subcategories found</div>;
-        return matchedSubs.map(sub => (
-          <div key={sub.sno} className="category-row">
-            {editing?.type === "subcategory" && editing.id === sub.sno ? (
-              <div className="category-edit">
-                <input
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                />
-                <select
-                  value={editParentCategoryId}
-                  onChange={(e) => setEditParentCategoryId(e.target.value)}
-                >
-                  {categories.map(c => (
-                    <option key={c.sno} value={c.sno}>
-                      {c.category_name}
-                    </option>
-                  ))}
-                </select>
-                <button className="btn-save" onClick={saveEdit}>Save</button>
-                <button className="btn-cancel" onClick={cancelEdit}>Cancel</button>
-              </div>
-            ) : (
-              <>
-                <span>{sub.subcategory_name}</span>
-                <div className="category-actions">
-                  <button
-                    className="btn-edit"
-                    onClick={() => startEdit("subcategory", { id: sub.sno, name: sub.subcategory_name, category_id: sub.category_id })}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn-delete"
-                    onClick={() => deleteItem("subcategory", sub.sno)}
-                  >
-                    Delete
-                  </button>
+      <section className="rounded-2xl border border-slate-200 bg-white p-4">
+        <h3 className="mb-3 text-base font-bold text-slate-900">Subcategories</h3>
+        {(() => {
+          const q = categoriesSearch.trim().toLowerCase();
+          const matchedSubs = q ? allSubcategories.filter(s => s.subcategory_name.toLowerCase().includes(q)) : allSubcategories;
+          if (matchedSubs.length === 0) return <div className="rounded-lg bg-slate-50 p-3 text-sm text-slate-500">No subcategories found</div>;
+          return (
+            <div className="space-y-2">
+              {matchedSubs.map(sub => (
+                <div key={sub.sno} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  {editing?.type === "subcategory" && editing.id === sub.sno ? (
+                    <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1fr,1fr,auto,auto]">
+                      <input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      />
+                      <select
+                        value={editParentCategoryId}
+                        onChange={(e) => setEditParentCategoryId(e.target.value)}
+                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                      >
+                        {categories.map(c => (
+                          <option key={c.sno} value={c.sno}>
+                            {c.category_name}
+                          </option>
+                        ))}
+                      </select>
+                      <button className="min-h-[40px] rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700" onClick={saveEdit}>Save</button>
+                      <button className="min-h-[40px] rounded-lg bg-slate-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-600" onClick={cancelEdit}>Cancel</button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-sm text-slate-800">{sub.subcategory_name}</span>
+                      <div className="flex gap-2">
+                        <button className="min-h-[38px] rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700" onClick={() => startEdit("subcategory", { id: sub.sno, name: sub.subcategory_name, category_id: sub.category_id })}>Edit</button>
+                        <button className="min-h-[38px] rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700" onClick={() => deleteItem("subcategory", sub.sno)}>Delete</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </>
-            )}
-          </div>
-        ));
-      })()}
+              ))}
+            </div>
+          );
+        })()}
+      </section>
     </div>
 
   </div>
@@ -3466,24 +3528,24 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                 multiple
                 onChange={handleFileChange}
                 required
-                className="text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-700"
+                className="hidden"
               />
 
               {selectedFiles.length > 0 && (
                     <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-                      <div className="mb-3 flex items-center justify-between">
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                         <p className="m-0 text-sm font-medium text-slate-700">✓ Selected {selectedFiles.length} image{selectedFiles.length > 1 ? 's' : ''}:</p>
                         <button
                           type="button"
                           onClick={handleDeleteAllImages}
                           className="rounded-lg bg-rose-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-600"
                         >
-                          🗑️ Delete All
+                          Delete All
                         </button>
                       </div>
                       <ul className="m-0 mt-3 list-none p-0">
                         {selectedFiles.map((file, index) => (
-                          <li key={`${file.name}-${index}`} className="mb-2 flex items-center justify-between rounded-md border border-amber-100 bg-amber-50 px-3 py-2">
+                          <li key={`${file.name}-${index}`} className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-md border border-amber-100 bg-amber-50 px-3 py-2">
                             <span className="text-sm text-slate-700">{file.name} ({(file.size / 1024).toFixed(0)} KB)</span>
                             <button
                               type="button"
@@ -3503,7 +3565,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
 
                 <div className="flex flex-col gap-3 sm:flex-row">
   {/* Single product upload */}
-  <button type="submit" className="inline-flex items-center justify-center rounded-xl bg-rose-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-slate-300" disabled={loading}>
+  <button type="submit" className="w-full rounded-xl bg-rose-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-slate-300 sm:w-auto" disabled={loading}>
     {loading ? '⏳ Uploading...' : '📸 Upload to Selected Product'}
   </button>
 
@@ -3515,102 +3577,141 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
           )}
 {/* Manage Products Tab */}
 {activeTab === "manage" && (
-<div
-  className="w-full max-w-[100vw] rounded-3xl bg-white px-5 py-0 shadow-[0_24px_60px_rgba(39,60,46,0.12)] sm:px-8"
->
+  <section className="mx-auto w-full rounded-3xl border border-slate-200 bg-white p-4 shadow-[0_24px_60px_rgba(39,60,46,0.12)] sm:p-6 lg:p-8">
+    <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <h2 className="m-0 text-2xl font-black text-slate-900">Manage Products</h2>
+        <p className="mt-1 text-sm text-slate-600">{filteredManageProducts.length} items found</p>
+      </div>
 
-    {/* Heading + Search */}
-    <div
-      className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
-    >
-      <h2 className="m-0 text-2xl font-black text-slate-900">
-        Manage Products (
-        {products.filter((p) => {
-          const name = (p.name || p.product_name || "").toLowerCase();
-          const code = (p.product_code || "").toLowerCase();
-          const query = searchQuery.toLowerCase();
-          return name.includes(query) || code.includes(query);
-        }).length}
-        )
-      </h2>
+      <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr),220px] lg:max-w-[640px]">
+        <input
+          type="text"
+          placeholder="Search by product name or code"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+        />
 
-      {/* Search Bar */}
-      <input
-        type="text"
-        placeholder="Search by name or product code..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 lg:max-w-[280px]"
-      />
+        <select
+          value={manageSort}
+          onChange={(e) => setManageSort(e.target.value)}
+          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+        >
+          <option value="latest">Sort: Latest</option>
+          <option value="name_asc">Sort: Name A-Z</option>
+          <option value="name_desc">Sort: Name Z-A</option>
+          <option value="price_low">Sort: Price Low to High</option>
+          <option value="price_high">Sort: Price High to Low</option>
+          <option value="stock_low">Sort: Stock Low to High</option>
+        </select>
+      </div>
     </div>
 
-    {/* Product Grid */}
-    <div className="products-grid">
-      {products
-        .filter((p) => {
-          const name = (p.name || p.product_name || "").toLowerCase();
-          const code = (p.product_code || "").toLowerCase();
-          const query = searchQuery.toLowerCase();
-          return name.includes(query) || code.includes(query);
-        })
+    {loadingProducts ? (
+      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-12 text-center text-sm font-medium text-slate-600">
+        Loading products...
+      </div>
+    ) : filteredManageProducts.length === 0 ? (
+      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-12 text-center">
+        <p className="m-0 text-base font-semibold text-slate-700">No products match your search.</p>
+        <p className="mt-2 text-sm text-slate-500">Try a different name or product code.</p>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        {sortedManageProducts.map((product) => (
+          <article key={product.id} className="flex h-full flex-col overflow-hidden rounded-2xl border-2 border-sky-200 bg-white shadow-[0_10px_26px_rgba(14,116,144,0.10)] ring-1 ring-sky-100 transition hover:-translate-y-1 hover:border-sky-300 hover:shadow-[0_16px_34px_rgba(14,116,144,0.16)]">
+            <div className="relative flex h-[180px] items-center justify-center bg-white p-1 sm:h-[200px] lg:h-[210px]">
+              {(() => {
+                const rawImage =
+                  product.image ||
+                  product.image_url ||
+                  product.images?.[0]?.url ||
+                  product.images?.[0] ||
+                  "";
 
-        .map((product) => (
-          <div key={product.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="aspect-[4/3] bg-slate-100">
-              
-            {(() => {
-  const rawImage =
-    product.image ||
-    product.image_url ||
-    product.images?.[0]?.url ||
-    product.images?.[0] ||
-    "";
+                let imageSrc = "";
+                if (typeof rawImage === "string" && rawImage.trim() !== "") {
+                  imageSrc = rawImage.startsWith("http")
+                    ? rawImage
+                    : `${API_BASE_URL}${rawImage}`;
+                }
 
-  // Normalize & validate
-  let imageSrc = "";
-  if (typeof rawImage === "string" && rawImage.trim() !== "") {
-    imageSrc = rawImage.startsWith("http")
-      ? rawImage
-      : `${API_BASE_URL}${rawImage}`;
-  }
+                if (!imageSrc || imageSrc.includes("undefined")) {
+                  return <div className="grid h-full w-full place-items-center rounded-xl border border-dashed border-slate-200 bg-white text-[11px] font-semibold text-slate-500">No image</div>;
+                }
 
-  // ❌ Invalid / empty / broken → show No Image ONLY
-  if (!imageSrc || imageSrc.includes("undefined")) {
-    return <div className="grid h-full w-full place-items-center text-sm font-semibold text-slate-500">?? No Image</div>;
-  }
+                return (
+                  <>
+                    <img
+                      src={imageSrc}
+                      alt={product.name || product.product_name || "Product"}
+                      className="h-full w-full rounded-xl object-cover"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
 
-  return (
-    <div className="relative h-full w-full">
-      <img
-        src={imageSrc}
-        alt={product.name || product.product_name}
-        className="h-full w-full object-contain"
-        onError={(e) => {
-          // stop retry loop completely
-          e.currentTarget.onerror = null;
-          e.currentTarget.style.display = "none";
-        }}
-      />
-
-      <button
-        onClick={() => handleDeleteProductImage(product.id)}
-        className="absolute right-2 top-2 grid h-9 w-9 place-items-center rounded-full bg-red-500/90 text-white transition hover:bg-red-600"
-        title="Delete Image"
-      >
-        🗑️
-      </button>
-    </div>
-  );
-})()}
-
-
+                    <button onClick={() => handleDeleteProductImage(product.id)} className="absolute right-2 top-2 grid h-11 w-11 place-items-center rounded-full bg-rose-500 text-sm text-white shadow-sm transition hover:bg-rose-600" title="Delete Image">🗑️</button>
+                  </>
+                );
+              })()}
             </div>
 
-            <div className="space-y-3 p-4">
-              <h3 className="text-base font-bold text-slate-900">{product.name}</h3>
+            <div className="flex flex-1 flex-col gap-2 p-3.5">
+              <div>
+                <h3 className="m-0 line-clamp-2 text-sm font-bold leading-5 text-slate-900">{product.name || product.product_name || "Unnamed product"}</h3>
+                <p className="mt-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">Code: {product.product_code || "N/A"}</p>
+              </div>
 
-              {/* Quick Add */}
-              <div className="my-1.5 mb-2.5 flex items-center gap-2">
+              <p className="line-clamp-2 min-h-[30px] text-xs leading-5 text-slate-600">{product.description || "No description available."}</p>
+
+              <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-700">
+                <span className="rounded-full bg-sky-50 px-2 py-1 text-center font-semibold text-sky-800">Price: Rs {product.price || 0}</span>
+                <span className="rounded-full bg-sky-50 px-2 py-1 text-center font-semibold text-sky-800">Age: {product.age_range || "N/A"}</span>
+              </div>
+
+              {editingProductId === product.id ? (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">Update stock quantity</label>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr,auto,auto]">
+                    <input
+                      type="number"
+                      min="0"
+                      value={editStockValue}
+                      onChange={(e) => setEditStockValue(e.target.value)}
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                    />
+
+                    <button
+                      className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                      onClick={() => handleUpdateStock(product.id)}
+                    >
+                      Save
+                    </button>
+
+                    <button
+                      className="rounded-lg bg-slate-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-600"
+                      onClick={cancelEditingStock}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr,74px,1fr] sm:items-center">
+                {editingProductId !== product.id ? (
+                  <span
+                    className={`inline-flex w-fit rounded-full px-2.5 py-1 text-xs font-semibold ${Number(product.stock_quantity ?? 0) <= 5 ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}
+                  >
+                    Stock: <strong className="ml-1">{product.stock_quantity ?? 0}</strong>
+                  </span>
+                ) : (
+                  <span className="text-xs font-medium text-slate-500">Set quantity for quick add</span>
+                )}
+
                 <input
                   type="number"
                   min="1"
@@ -3621,109 +3722,57 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                       [product.id]: parseInt(e.target.value || "1", 10),
                     }))
                   }
-                  className="w-[72px] rounded-md border border-blue-500 px-2 py-1.5 text-sm text-slate-700 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                  className="w-full rounded-md border border-slate-300 px-2 py-2 text-center text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
 
                 <button
                   onClick={() => handleQuickAddToBill(product.id)}
-                  className="add-to-bag-btn rounded-md bg-rose-500 px-3 py-2 text-white transition hover:bg-rose-600"
+                  className="min-h-[40px] rounded-lg bg-pink-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-pink-600"
                 >
-                  Add to Bag
+                  Add to bag
                 </button>
               </div>
 
-              <p className="product-desc">{product.description}</p>
-
-              <div className="flex flex-wrap gap-2 text-xs text-slate-600">
-                <span className="rounded-full bg-slate-100 px-2.5 py-1">?? ?{product.price}</span>
-                <span className="rounded-full bg-slate-100 px-2.5 py-1">?? {product.age_range}</span>
-              </div>
-
-              {/* Stock Editing */}
-              {editingProductId === product.id ? (
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                  <label className="mb-1.5 block text-sm font-semibold text-slate-700">Update Stock:</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="0"
-                      value={editStockValue}
-                      onChange={(e) => setEditStockValue(e.target.value)}
-                      className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                    />
-
-                    <button
-                      className="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600"
-                      onClick={() => handleUpdateStock(product.id)}
-                    >
-                      Save
-                    </button>
-
-                    <button
-                      className="rounded-lg bg-rose-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-600"
-                      onClick={cancelEditingStock}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                    ?? Stock: <strong className="ml-1">{product.stock_quantity}</strong> units
-                  </span>
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex flex-wrap gap-2">
+              <div className="mt-auto grid grid-cols-2 gap-2">
                 <button
-  onClick={() => window.open(`/product/${product.id}`, "_blank")}
-                  className="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600"
->
-  ??? View Details
-</button>
-
-                {/* Previous in-app navigation button intentionally removed in favor of opening product page in a new tab. */}
+                  onClick={() => window.open(`/product/${product.id}`, "_blank")}
+                  className="min-h-[40px] w-full rounded-lg border border-blue-500 bg-white px-3 py-2 text-xs font-semibold text-blue-600 transition hover:bg-blue-50"
+                >
+                  View details
+                </button>
 
                 {editingProductId !== product.id && (
                   <button
-                    className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
-                    onClick={() =>
-                      startEditingStock(product.id, product.stock_quantity)
-                    }
+                    className="min-h-[40px] w-full rounded-lg border border-blue-500 bg-white px-3 py-2 text-xs font-semibold text-blue-600 transition hover:bg-blue-50"
+                    onClick={() => startEditingStock(product.id, product.stock_quantity)}
                   >
-                    ?? Edit Stock
+                    Edit stock
                   </button>
                 )}
 
                 <button
-                  className="rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
+                  className={`min-h-[40px] w-full rounded-lg border border-rose-400 bg-white px-3 py-2 text-xs font-semibold text-rose-500 transition hover:bg-rose-50 ${editingProductId !== product.id ? "col-span-2" : "col-span-1"}`}
                   onClick={() => handleDeleteProduct(product.id)}
                 >
-                  ??? Delete
+                  Delete product
                 </button>
               </div>
             </div>
-          </div>
+          </article>
         ))}
-    </div>
-  </div>
+      </div>
+    )}
+  </section>
 )}
 
           {/* Billing Tab */}
           {activeTab === 'billing' && (
-            
             <div className="mx-auto w-full max-w-[1200px] rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_24px_60px_rgba(39,60,46,0.12)] sm:p-8">
-             
-              <h2 className="mb-5 text-2xl font-black text-slate-900">💳 Offline Billing (POS)</h2>
-              
+              <h2 className="mb-5 text-2xl font-black text-slate-900">Offline Billing (POS)</h2>
+
               <div className="billing-container grid gap-5 xl:grid-cols-2">
-                 
-                {/* Left Section - Add Items */}
                 <div className="space-y-4">
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div>
                     <h3 className="mb-3 text-lg font-bold text-slate-900">Customer Information (Optional)</h3>
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                       <div>
@@ -3736,7 +3785,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                           placeholder="Enter customer name"
                           className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                         />
-                      
+                      </div>
                       <div>
                         <label htmlFor="customer-phone" className="mb-1.5 block text-sm font-semibold text-slate-700">Phone Number</label>
                         <input
@@ -3747,7 +3796,6 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                           placeholder="Enter phone number"
                           className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                         />
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -3761,7 +3809,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                           id="billing-product-select"
                           value={selectedBillingProduct}
                           onChange={(e) => setSelectedBillingProduct(e.target.value)}
-                          className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                         >
                           <option value="">-- Choose a Product --</option>
                           {products.filter(p => p.stock_quantity > 0).map((product) => (
@@ -3770,128 +3818,116 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                             </option>
                           ))}
                         </select>
-                      
+                      </div>
+
                       <div>
                         <label htmlFor="billing-quantity" className="mb-1.5 block text-sm font-semibold text-slate-700">Quantity</label>
                         <input
                           type="number"
                           id="billing-quantity"
                           value={billingQuantity}
-                          onChange={(e) => setBillingQuantity(parseInt(e.target.value) || 1)}
+                          onChange={(e) => setBillingQuantity(parseInt(e.target.value, 10) || 1)}
                           min="1"
-                          className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                         />
-                         <div className="mt-3" >
-                        <button 
-                          type="button" 
-                          className="add-item-btn inline-flex items-center justify-center rounded-xl bg-rose-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-600"
-                          onClick={handleAddToBill}
-                        >
-                          ➕ Add to Bill
-                        </button>
+                        <div className="mt-3">
+                          <button
+                            type="button"
+                            className="w-full rounded-xl bg-rose-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-600"
+                            onClick={handleAddToBill}
+                          >
+                            Add to Bill
+                          </button>
                         </div>
-                      </div>
-                     
                       </div>
                     </div>
                   </div>
                 </div>
-                </div>
 
-                {/* Right Section - Bill Display */}
-                 
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div>
-                    <h3 className="mb-3 text-lg font-bold text-slate-900">Current Bill</h3>
-                    
-                   </div>
-                    {billItems.length === 0 ? (
-                      <div className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center">
-                        <p className="text-sm text-slate-500">No items added yet</p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="max-h-[320px] overflow-auto rounded-xl border border-slate-200 bg-white">
-                          <table className="w-full border-collapse text-sm">
-                            <thead>
-                              <tr>
-                                
-                                <th className="border-b border-slate-200 bg-slate-100 px-3 py-2 text-left font-semibold text-slate-700">Product</th>
-                                <th className="border-b border-slate-200 bg-slate-100 px-3 py-2 text-left font-semibold text-slate-700">Price</th>
-                                <th className="border-b border-slate-200 bg-slate-100 px-3 py-2 text-left font-semibold text-slate-700">Qty</th>
-                                <th className="border-b border-slate-200 bg-slate-100 px-3 py-2 text-left font-semibold text-slate-700">Total</th>
-                                <th className="border-b border-slate-200 bg-slate-100 px-3 py-2 text-left font-semibold text-slate-700"></th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {billItems.map((item) => (
-                                <tr key={item.id}>
-                                  <td className="border-b border-slate-100 px-3 py-2 text-slate-800">{item.name}</td>
-                                  <td className="border-b border-slate-100 px-3 py-2 text-slate-800">₹{item.price.toFixed(2)}</td>
-                                  <td className="border-b border-slate-100 px-3 py-2">
-                                    <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-1 py-1">
-                                      <button 
-                                        onClick={() => handleUpdateBillQuantity(item.id, item.quantity - 1)}
-                                        className="grid h-7 w-7 place-items-center rounded-md border border-slate-200 bg-white text-sm font-bold text-slate-700 transition hover:bg-slate-100"
-                                      >
-                                        −
-                                      </button>
-                                      <span className="min-w-[24px] text-center text-sm font-semibold text-slate-700">{item.quantity}</span>
-                                      <button 
-                                        onClick={() => handleUpdateBillQuantity(item.id, item.quantity + 1)}
-                                        className="grid h-7 w-7 place-items-center rounded-md border border-slate-200 bg-white text-sm font-bold text-slate-700 transition hover:bg-slate-100"
-                                      >
-                                        +
-                                      </button>
-                                    </div>
-                                  </td>
-                                  <td className="border-b border-slate-100 px-3 py-2 font-semibold text-slate-800">₹{(item.price * item.quantity).toFixed(2)}</td>
-                                  <td className="border-b border-slate-100 px-3 py-2">
-                                    <button 
-                                      onClick={() => handleRemoveFromBill(item.id)}
-                                      className="rounded-md bg-rose-500 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-rose-600"
+                  <h3 className="mb-3 text-lg font-bold text-slate-900">Current Bill</h3>
+
+                  {billItems.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center">
+                      <p className="text-sm text-slate-500">No items added yet</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="max-h-[320px] overflow-auto rounded-xl border border-slate-200 bg-white">
+                        <table className="w-full border-collapse text-sm">
+                          <thead>
+                            <tr>
+                              <th className="border-b border-slate-200 bg-slate-100 px-3 py-2 text-left font-semibold text-slate-700">Product</th>
+                              <th className="border-b border-slate-200 bg-slate-100 px-3 py-2 text-left font-semibold text-slate-700">Price</th>
+                              <th className="border-b border-slate-200 bg-slate-100 px-3 py-2 text-left font-semibold text-slate-700">Qty</th>
+                              <th className="border-b border-slate-200 bg-slate-100 px-3 py-2 text-left font-semibold text-slate-700">Total</th>
+                              <th className="border-b border-slate-200 bg-slate-100 px-3 py-2 text-left font-semibold text-slate-700"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {billItems.map((item) => (
+                              <tr key={item.id}>
+                                <td className="border-b border-slate-100 px-3 py-2 text-slate-800">{item.name}</td>
+                                <td className="border-b border-slate-100 px-3 py-2 text-slate-800">₹{item.price.toFixed(2)}</td>
+                                <td className="border-b border-slate-100 px-3 py-2">
+                                  <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-1 py-1">
+                                    <button
+                                      onClick={() => handleUpdateBillQuantity(item.id, item.quantity - 1)}
+                                      className="grid h-7 w-7 place-items-center rounded-md border border-slate-200 bg-white text-sm font-bold text-slate-700 transition hover:bg-slate-100"
                                     >
-                                      🗑️
+                                      -
                                     </button>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
+                                    <span className="min-w-[24px] text-center text-sm font-semibold text-slate-700">{item.quantity}</span>
+                                    <button
+                                      onClick={() => handleUpdateBillQuantity(item.id, item.quantity + 1)}
+                                      className="grid h-7 w-7 place-items-center rounded-md border border-slate-200 bg-white text-sm font-bold text-slate-700 transition hover:bg-slate-100"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                </td>
+                                <td className="border-b border-slate-100 px-3 py-2 font-semibold text-slate-800">₹{(item.price * item.quantity).toFixed(2)}</td>
+                                <td className="border-b border-slate-100 px-3 py-2">
+                                  <button
+                                    onClick={() => handleRemoveFromBill(item.id)}
+                                    className="rounded-md bg-rose-500 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-rose-600"
+                                  >
+                                    Remove
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
 
-                        <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
-                          <div className="flex items-center justify-between py-1.5 text-sm text-slate-700">
-                            <span>Subtotal:</span>
-                            <span>₹{calculateBillTotal().subtotal.toFixed(2)}</span>
-                          </div>
-                          {/* <div className="summary-row">
-                            <span>GST (18%):</span>
-                            <span>₹{calculateBillTotal().gst.toFixed(2)}</span>
-                          </div> */}
-                          <div className="mt-2 flex items-center justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900">
-                            <span>Total Amount:</span>
-                            <span>₹{calculateBillTotal().total.toFixed(2)}</span>
-                          </div>
+                      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+                        <div className="flex items-center justify-between py-1.5 text-sm text-slate-700">
+                          <span>Subtotal:</span>
+                          <span>₹{calculateBillTotal().subtotal.toFixed(2)}</span>
                         </div>
+                        <div className="mt-2 flex items-center justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900">
+                          <span>Total Amount:</span>
+                          <span>₹{calculateBillTotal().total.toFixed(2)}</span>
+                        </div>
+                      </div>
 
-                        <div className="mt-4 flex flex-wrap gap-3">
-                          <button 
-                            onClick={handlePrintBill}
-                            className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
-                          >
-                            🖨️ Print Bill
-                          </button>
-                          <button 
-                            onClick={handleClearBill}
-                            className="inline-flex items-center justify-center rounded-xl bg-rose-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-600"
-                          >
-                            🗑️ Clear Bill
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  
+                      <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                        <button
+                          onClick={handlePrintBill}
+                          className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+                        >
+                          Print Bill
+                        </button>
+                        <button
+                          onClick={handleClearBill}
+                          className="rounded-xl bg-rose-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-600"
+                        >
+                          Clear Bill
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -3981,7 +4017,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
             />
           </div>
 
-          <div>
+          <div className="md:col-span-2">
             <label className="mb-1.5 block text-sm font-semibold text-slate-700">Description *</label>
             <textarea
               name="description"
@@ -4003,7 +4039,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
           )}
         </div>
 
-        <button type="submit" className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-400" disabled={loading}>
+        <button type="submit" className="w-full rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-400 sm:w-auto" disabled={loading}>
           {loading ? 'Uploading...' : '🎁 Add Gift Card'}
         </button>
       </form>
@@ -4020,7 +4056,7 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
             <p className="text-sm text-slate-500">No gift cards available.</p>
           ) : (
             giftCards.map((gc) => (
-              <div key={gc.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div key={gc.id} className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div className="aspect-[4/3] bg-slate-100">
                   {gc.image_url ? (
                     <img src={`${API_BASE_URL}${gc.image_url}`} alt={gc.title} className="h-full w-full object-cover" />
@@ -4028,8 +4064,8 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                     <div className="grid h-full w-full place-items-center text-sm font-semibold text-slate-500">📦 No Image</div>
                   )}
                 </div>
-                <div className="space-y-2 p-4">
-                  <h3 className="text-base font-bold text-slate-900">{gc.title}</h3>
+                <div className="flex flex-1 flex-col space-y-2 p-4">
+                  <h3 className="min-h-[48px] text-base font-bold text-slate-900">{gc.title}</h3>
                   <div className="flex flex-wrap gap-2 text-xs text-slate-600">
                     <span className="rounded-full bg-slate-100 px-2.5 py-1">Brand: {gc.brand}</span>
                     <span className="rounded-full bg-slate-100 px-2.5 py-1">SKU: {gc.sku}</span>
@@ -4045,12 +4081,12 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                       })()}
                     </span>
                   </div>
-                  <div className="pt-1">
+                  <div className="mt-auto pt-1">
                     <button 
-                      className="inline-flex items-center justify-center rounded-lg bg-rose-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-600"
+                      className="min-h-[40px] w-full rounded-lg bg-rose-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-600"
                       onClick={() => handleDeleteGiftCard(gc.id)}
                     >
-                      🗑️ Delete
+                      Delete
                     </button>
                   </div>
                 </div>
@@ -4115,93 +4151,60 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
     {/* Existing brands heading */}
 
     <h3 className="mt-6 text-lg font-bold text-slate-900">Existing Brands</h3>
-    <div className="relative mb-5">
-      {/* Left Scroll Button */}
-      <button
-        onClick={() => {
-          const container = document.getElementById('brandsScrollContainer');
-          if (container) {
-            container.scrollBy({ left: -300, behavior: 'smooth' });
-          }
-        }}
-        className="absolute left-0 top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-blue-600 text-xl text-white shadow-md transition hover:bg-blue-700"
-        title="Scroll Left"
-      >
-        ◀
-      </button>
-
-      {/* Right Scroll Button */}
-      <button
-        onClick={() => {
-          const container = document.getElementById('brandsScrollContainer');
-          if (container) {
-            container.scrollBy({ left: 300, behavior: 'smooth' });
-          }
-        }}
-        className="absolute right-0 top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-blue-600 text-xl text-white shadow-md transition hover:bg-blue-700"
-        title="Scroll Right"
-      >
-        ▶
-      </button>
-
-      {/* Brands Scroll Container */}
-      <div id="brandsScrollContainer" className="scroll-smooth [scrollbar-width:thin] [scrollbar-color:#ddd_#f0f0f0] flex gap-4 overflow-x-auto px-12">
-  {Array.isArray(brands) && brands.map((b) => (
-    <div key={b.id} className="relative min-w-[150px] shrink-0">
-
-      {/* ❌ DELETE BUTTON */}
-      <button
-        className="absolute left-2 top-2 z-10 rounded-full bg-rose-500 px-2 py-1 text-xs font-bold text-white transition hover:bg-rose-600"
-        onClick={() => handleDeleteBrand(b.id)}
-        title="Delete Brand"
-      >
-        ?
-      </button>
-
-      {/* ✏️ EDIT BUTTON */}
-      <button
-        onClick={() => handleEditBrand(b)}
-        title="Edit Brand Name"
-        className="absolute right-8 top-2 z-[5] rounded bg-blue-500 px-2 py-1 text-xs font-bold text-white transition hover:bg-blue-600"
-      >
-        ✏️
-      </button>
-
-      <img src={`${API_BASE_URL}${b.logo_url}`} alt={b.name} />
-      
-      {/* Show edit input if editing this brand */}
-      {editingBrandId === b.id ? (
-        <div className="mt-2 flex flex-col gap-1.5">
-          <input
-            type="text"
-            value={editingBrandName}
-            onChange={(e) => setEditingBrandName(e.target.value)}
-            placeholder="Enter brand name"
-            className="rounded border border-gray-300 px-2 py-1.5 text-xs focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-          />
-          <div className="flex gap-1">
+    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      {Array.isArray(brands) && brands.map((b) => (
+        <div key={b.id} className="relative flex h-full flex-col rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="relative mb-3 flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-slate-50">
             <button
-              onClick={() => handleSaveBrandName(b.id)}
-              disabled={updatingBrand}
-              className="flex-1 rounded bg-emerald-500 px-2 py-1 text-[11px] text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
+              className="absolute left-2 top-2 z-10 rounded-full bg-rose-500 px-2 py-1 text-[11px] font-bold text-white transition hover:bg-rose-600"
+              onClick={() => handleDeleteBrand(b.id)}
+              title="Delete Brand"
             >
-              {updatingBrand ? "..." : "Save"}
+              Delete
             </button>
+
             <button
-              onClick={handleCancelEditBrand}
-              disabled={updatingBrand}
-              className="flex-1 rounded bg-red-500 px-2 py-1 text-[11px] text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => handleEditBrand(b)}
+              title="Edit Brand Name"
+              className="absolute right-2 top-2 z-10 rounded-full bg-blue-500 px-2 py-1 text-[11px] font-bold text-white transition hover:bg-blue-600"
             >
-              Cancel
+              Edit
             </button>
+
+            <img src={`${API_BASE_URL}${b.logo_url}`} alt={b.name} className="h-full w-full object-contain p-2" />
           </div>
+
+          {editingBrandId === b.id ? (
+            <div className="mt-auto flex flex-col gap-2">
+              <input
+                type="text"
+                value={editingBrandName}
+                onChange={(e) => setEditingBrandName(e.target.value)}
+                placeholder="Enter brand name"
+                className="rounded-lg border border-slate-300 px-2 py-2 text-xs focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => handleSaveBrandName(b.id)}
+                  disabled={updatingBrand}
+                  className="rounded-lg bg-emerald-500 px-2 py-2 text-xs font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {updatingBrand ? "Saving" : "Save"}
+                </button>
+                <button
+                  onClick={handleCancelEditBrand}
+                  disabled={updatingBrand}
+                  className="rounded-lg bg-rose-500 px-2 py-2 text-xs font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-auto line-clamp-2 text-center text-sm font-semibold text-slate-700">{b.name}</p>
+          )}
         </div>
-      ) : (
-        <p>{b.name}</p>
-      )}
-    </div>
-  ))}
-</div>
+      ))}
     </div>
 
   </div>
@@ -4328,9 +4331,9 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
       ) : (
         <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
           {stores.map(store => (
-            <div key={store.id} className="rounded-xl border border-slate-200 bg-white p-3.5">
+            <div key={store.id} className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm">
               <div className="flex gap-3">
-                <div className="flex h-[90px] w-[110px] items-center justify-center overflow-hidden rounded-lg bg-slate-50">
+                <div className="flex h-[96px] w-[116px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-50">
                   {store.image_url ? <img src={`${API_BASE_URL}${store.image_url}`} alt={store.name} className="h-full w-full object-cover" onError={(e) => e.target.style.display='none'} /> : <div className="text-sm text-slate-500">No Image</div>}
                 </div>
 
@@ -4342,9 +4345,9 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
                 </div>
               </div>
 
-              <div className="mt-3 flex gap-2">
-                <button onClick={() => handleEditStore(store)} className="flex-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">✏️ Edit</button>
-                <button onClick={() => handleDeleteStore(store.id, store.name)} className="flex-1 rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-700">🗑️ Delete</button>
+              <div className="mt-auto flex gap-2 pt-3">
+                <button onClick={() => handleEditStore(store)} className="min-h-[42px] flex-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">Edit</button>
+                <button onClick={() => handleDeleteStore(store.id, store.name)} className="min-h-[42px] flex-1 rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-700">Delete</button>
               </div>
             </div>
           ))}
@@ -4519,83 +4522,51 @@ Toy Car,TC002,Remote control car,899,999,5,HotWheels,1,3,30,5-7 Years,Boys,Fast 
       ) : tags.length === 0 ? (
         <p className="text-sm text-gray-500">No tags yet. Create your first tag above!</p>
       ) : (
-        <div className="relative mt-4">
-          {/* Left Scroll Button */}
-          <button
-            onClick={() => {
-              const container = document.getElementById('tagsScrollContainer');
-              if (container) {
-                container.scrollBy({ left: -300, behavior: 'smooth' });
-              }
-            }}
-            className="absolute left-0 top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-blue-600 text-xl text-white shadow-md transition hover:bg-blue-700"
-            title="Scroll Left"
-          >
-            ◀
-          </button>
-
-          {/* Right Scroll Button */}
-          <button
-            onClick={() => {
-              const container = document.getElementById('tagsScrollContainer');
-              if (container) {
-                container.scrollBy({ left: 300, behavior: 'smooth' });
-              }
-            }}
-            className="absolute right-0 top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-blue-600 text-xl text-white shadow-md transition hover:bg-blue-700"
-            title="Scroll Right"
-          >
-            ▶
-          </button>
-
-          {/* Tags Scroll Container */}
-          <div
-            id="tagsScrollContainer"
-            className="scroll-smooth [scrollbar-width:thin] [scrollbar-color:#ddd_#f0f0f0] flex gap-4 overflow-x-auto px-12"
-          >
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {tags.map((tag) => (
             <div
               key={tag.id}
-              className="flex w-[280px] min-w-[280px] shrink-0 flex-col gap-2.5 rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+              className="flex h-full flex-col gap-2.5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
             >
-              {tag.image && (
-                <img 
-                  src={`${API_BASE_URL}${tag.image}`} 
-                  alt={tag.name}
-                  className="h-[150px] w-full rounded-md object-cover"
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                  }}
-                />
-              )}
+              <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg bg-slate-50">
+                {tag.image ? (
+                  <img
+                    src={`${API_BASE_URL}${tag.image}`}
+                    alt={tag.name}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div className="text-sm font-medium text-slate-500">No Image</div>
+                )}
+              </div>
+
               <div>
                 <h4 className="mb-1 text-sm font-semibold text-gray-800">{tag.name}</h4>
-                <p className="m-0 text-xs text-gray-600">
- ID: {tag.id} </p>
-                <p className="m-0 text-xs text-gray-400">
-                  slug: {tag.slug}
-                </p>
+                <p className="m-0 text-xs text-gray-600">ID: {tag.id}</p>
+                <p className="m-0 text-xs text-gray-400">slug: {tag.slug}</p>
               </div>
-              
-              <div className="flex gap-2">
+
+              <div className="mt-auto grid grid-cols-2 gap-2">
                 <button
                   onClick={() => handleEditTag(tag)}
-                  className="flex-1 rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700"
+                  className="min-h-[40px] rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700"
                   title={`Edit ${tag.name} tag`}
                 >
-                  ✏️ Edit
+                  Edit
                 </button>
                 <button
                   onClick={() => handleDeleteTag(tag.id, tag.name)}
-                  className="flex-1 rounded-md bg-red-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-700"
+                  className="min-h-[40px] rounded-md bg-red-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-700"
                   title={`Delete ${tag.name} tag`}
                 >
-                  🗑️ Delete
+                  Delete
                 </button>
               </div>
             </div>
           ))}
-          </div>
         </div>
       )}
     </div>

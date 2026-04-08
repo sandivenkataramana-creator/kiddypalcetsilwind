@@ -72,7 +72,7 @@ const HeroSlider = ({ slides = [], interval = 2000 }) => {
 
   return (
     <div
-      className="relative overflow-hidden rounded-[26px] bg-[#0f6a73] shadow-[0_16px_40px_rgba(15,106,115,0.22)] ring-1 ring-[#0f6a73]/25"
+      className="relative overflow-hidden rounded-lg sm:rounded-xl lg:rounded-[26px] bg-[#0f6a73] shadow-[0_16px_40px_rgba(15,106,115,0.22)] ring-1 ring-[#0f6a73]/25"
       onMouseEnter={() => {
         hoveringRef.current = true;
       }}
@@ -80,7 +80,7 @@ const HeroSlider = ({ slides = [], interval = 2000 }) => {
         hoveringRef.current = false;
       }}
     >
-      <div className="relative aspect-[16/5] min-h-[160px] w-full sm:min-h-[200px] lg:min-h-[250px]">
+      <div className="relative aspect-[16/5] min-h-[200px] w-full sm:min-h-[260px] lg:min-h-[300px]">
         {slides.map((slide, index) => (
           <div
             key={slide.title || index}
@@ -141,10 +141,10 @@ const HeroSlider = ({ slides = [], interval = 2000 }) => {
   );
 };
 
-const SectionShell = ({ id, title, actionLabel, onAction, children, centeredTitle = false, tone = 'light' }) => (
+const SectionShell = ({ id, title, actionLabel, onAction, children, centeredTitle = false, tone = 'soft' }) => (
   <section
     id={id}
-    className={`scroll-mt-32 rounded-[20px] border-2 p-4 shadow-[0_12px_30px_rgba(27,49,55,0.1)] sm:p-5 ${
+    className={`scroll-mt-32 rounded-lg sm:rounded-xl lg:rounded-[20px] border-2 p-4 shadow-[0_12px_30px_rgba(27,49,55,0.1)] sm:p-5 ${
       tone === 'soft' ? 'border-[#d5dfd7] bg-[#fbfbf6]' : 'border-[#c7d9dc] bg-white'
     }`}
   >
@@ -160,7 +160,7 @@ const SectionShell = ({ id, title, actionLabel, onAction, children, centeredTitl
         <button
           type="button"
           onClick={onAction}
-          className="rounded-full bg-[#0f6a73] px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#0c5a61]"
+          className="rounded-full px-5 py-2 text-sm font-semibold transition hover:-translate-y-0.5"
         >
           {actionLabel}
         </button>
@@ -172,7 +172,7 @@ const SectionShell = ({ id, title, actionLabel, onAction, children, centeredTitl
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const priceScrollRef = useRef(null);
+
   const ageScrollRef = useRef(null);
   const categoryScrollRef = useRef(null);
   const brandScrollRef = useRef(null);
@@ -301,51 +301,32 @@ const HomePage = () => {
         <HeroSlider slides={slides} />
 
         <SectionShell title="Shop by Price" tone="soft">
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => scrollRefByAmount(priceScrollRef, -1)}
-              className="absolute left-1 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-lg text-[#1b3137] shadow-md transition hover:bg-white sm:left-2 sm:flex lg:hidden"
-              aria-label="Scroll prices left"
-            >
-              ‹
-            </button>
-
-            <div
-              ref={priceScrollRef}
-              className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-0.5 pb-2 scroll-smooth [scroll-padding-inline:0.125rem] sm:px-4 sm:[scroll-padding-inline:1rem] lg:justify-center lg:overflow-x-visible lg:px-0 lg:pb-0 lg:[scroll-padding-inline:0]"
-            >
-              {prices.map((price) => (
-                <button
-                  key={price.label}
-                  data-scroll-card="true"
-                  type="button"
-                  onClick={() => navigate(`/products?price=0-${price.maxPrice}`)}
-                  className="min-w-[176px] snap-start rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
-                >
-                  <div className="flex h-36 flex-col justify-between rounded-3xl bg-gradient-to-br from-[#d8f0f2] to-[#c3e5e9] p-4">
-                    <span className="text-xs font-semibold uppercase tracking-[0.32em] text-[#0f6a73]/85">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-6 lg:gap-6">
+            {prices.map((price) => (
+              <button
+                key={price.label}
+                type="button"
+                onClick={() => navigate(`/products?price=0-${price.maxPrice}`)}
+                className="group overflow-hidden rounded-[28px] border border-[#dfe8ed] bg-white p-1 shadow-xl transition duration-300 hover:-translate-y-1 hover:shadow-2xl sm:p-1.5"
+              >
+                <div className="relative flex h-28 flex-col justify-between overflow-hidden rounded-lg sm:rounded-2xl lg:rounded-[24px] border border-white/70 bg-white/95 px-4 py-4 text-left shadow-[inset_0_0_0_1px_rgba(255,255,255,0.5)] price-card-image sm:h-32 sm:px-5 sm:py-5">
+                  <div className="absolute -right-4 top-3 h-16 w-16 rounded-full bg-white/70 blur-2xl opacity-80" />
+                  <div className="relative z-10">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.38em] text-[#0f6a73]/80">
                       Under
                     </span>
-                    <span className="text-[2rem] font-black leading-none text-[#1b3137]">
+                  </div>
+                  <div className="relative z-10">
+                    <span className="block text-4xl font-black tracking-[-0.05em] text-[#c20d20] sm:text-[2.3rem]">
                       {price.label}
                     </span>
+                    <p className="mt-1 text-sm font-semibold text-[#1f3a43]/85">
+                      Shop best selling picks
+                    </p>
                   </div>
-                  <div className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#0f6a73]/85">
-                    Shop by price
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => scrollRefByAmount(priceScrollRef, 1)}
-              className="absolute right-1 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-lg text-[#1b3137] shadow-md transition hover:bg-white sm:right-2 sm:flex lg:hidden"
-              aria-label="Scroll prices right"
-            >
-              ›
-            </button>
+                </div>
+              </button>
+            ))}
           </div>
         </SectionShell>
 
@@ -370,9 +351,9 @@ const HomePage = () => {
                   data-scroll-card="true"
                   type="button"
                   onClick={() => navigate(`/products?age=${age.age}`)}
-                  className="min-w-[176px] snap-start rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
+                  className="min-w-[176px] snap-start rounded-lg sm:rounded-2xl lg:rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
                 >
-                  <div className={`flex h-32 items-center justify-center rounded-2xl p-3 ${age.bgClass}`}>
+                  <div className={`flex h-32 items-center justify-center rounded-lg sm:rounded-xl lg:rounded-2xl p-3 ${age.bgClass}`}>
                     <img src={age.icon} alt={age.label} className="h-full w-full rounded-xl object-contain" />
                   </div>
                   <div className="mt-4 min-h-[2.5rem] text-sm font-bold uppercase tracking-wide text-[#1b3137]">
@@ -414,12 +395,12 @@ const HomePage = () => {
                   data-scroll-card="true"
                   type="button"
                   onClick={() => navigate(`/products/by-category/${category.sno}`)}
-                  className="min-w-[176px] snap-start rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
+                  className="min-w-[176px] snap-start rounded-lg sm:rounded-2xl lg:rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
                 >
                   <img
                     src={categoryImages[index % categoryImages.length]}
                     alt={category.category_name}
-                    className="h-32 w-full rounded-2xl object-cover"
+                    className="h-32 w-full rounded-lg sm:rounded-xl lg:rounded-2xl object-cover"
                   />
                   <div className="mt-4 min-h-[2.5rem] text-sm font-bold uppercase tracking-wide text-[#1b3137]">
                     {category.category_name}
@@ -446,7 +427,7 @@ const HomePage = () => {
                 key={item.id}
                 type="button"
                 onClick={() => navigate(`/product/${item.id}`)}
-                className="relative flex h-full flex-col rounded-2xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
+                className="relative flex h-full flex-col rounded-lg sm:rounded-xl lg:rounded-2xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
               >
                 {item.discount_percent > 0 ? (
                   <span className="absolute right-3 top-3 rounded-full bg-gradient-to-r from-[#f46f56] to-[#ff9774] px-3 py-1 text-[11px] font-bold text-white shadow-md">
@@ -457,7 +438,7 @@ const HomePage = () => {
                   src={item.image_url ? `${API_BASE_URL}${item.image_url}` : '/placeholder-product.png'}
                   alt={item.name}
                   loading="lazy"
-                  className="h-32 w-full rounded-xl object-cover"
+                  className="h-32 w-full rounded-lg sm:rounded-lg lg:rounded-xl object-cover"
                 />
                 <div className="mt-4 space-y-1.5">
                   <h3 className="line-clamp-2 text-sm font-semibold leading-5 text-[#1b3137]">{item.name}</h3>
@@ -486,7 +467,7 @@ const HomePage = () => {
                   data-scroll-card="true"
                   type="button"
                   onClick={() => navigate(`/products?brand=${brand.name}`)}
-                  className="min-w-[158px] snap-start rounded-2xl border-2 border-[#ccdfe2] bg-white p-3 text-center shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
+                  className="min-w-[158px] snap-start rounded-lg sm:rounded-lg lg:rounded-2xl border-2 border-[#ccdfe2] bg-white p-3 text-center shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
                 >
                   <img
                     src={`${API_BASE_URL}${brand.logo_url}`}
@@ -494,7 +475,7 @@ const HomePage = () => {
                     onError={(event) => {
                       event.currentTarget.src = '/placeholder-brand.png';
                     }}
-                    className="h-24 w-full rounded-xl object-contain bg-white p-3"
+                    className="h-24 w-full rounded-lg sm:rounded-lg lg:rounded-xl object-contain bg-white p-3"
                   />
                   <p className="mt-4 min-h-[2.5rem] truncate text-sm font-bold uppercase tracking-wide text-[#1b3137]">{brand.name}</p>
                 </button>
@@ -519,7 +500,7 @@ const HomePage = () => {
                 key={item.id}
                 type="button"
                 onClick={() => navigate(`/product/${item.id}`)}
-                className="relative flex h-full flex-col rounded-2xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
+                className="relative flex h-full flex-col rounded-lg sm:rounded-xl lg:rounded-2xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
               >
                 {item.discount_percent > 0 ? (
                   <span className="absolute right-3 top-3 rounded-full bg-gradient-to-r from-[#f46f56] to-[#ff9774] px-3 py-1 text-[11px] font-bold text-white shadow-md">
@@ -527,7 +508,7 @@ const HomePage = () => {
                   </span>
                 ) : null}
                 <img
-                  className="h-36 w-full rounded-xl object-cover"
+                  className="h-36 w-full rounded-lg sm:rounded-lg lg:rounded-xl object-cover"
                   src={item.image_url ? `${API_BASE_URL}${item.image_url}` : '/placeholder-product.png'}
                   alt={item.name}
                   loading="lazy"
@@ -562,7 +543,7 @@ const HomePage = () => {
                     data-scroll-card="true"
                     type="button"
                     onClick={() => navigate(`/products?tag=${character.id}`)}
-                    className="min-w-[176px] snap-start rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
+                    className="min-w-[176px] snap-start rounded-lg sm:rounded-2xl lg:rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
                   >
                     {character.image ? (
                       <img
@@ -571,10 +552,10 @@ const HomePage = () => {
                         onError={(event) => {
                           event.currentTarget.src = barbie;
                         }}
-                        className="h-40 w-full rounded-2xl object-cover"
+                        className="h-40 w-full rounded-lg sm:rounded-xl lg:rounded-2xl object-cover"
                       />
                     ) : (
-                      <div className="flex h-40 items-center justify-center rounded-2xl bg-[#f0f0f0] text-sm text-[#999]">
+                      <div className="flex h-40 items-center justify-center rounded-lg sm:rounded-xl lg:rounded-2xl bg-[#f0f0f0] text-sm text-[#999]">
                         No Image
                       </div>
                     )}
