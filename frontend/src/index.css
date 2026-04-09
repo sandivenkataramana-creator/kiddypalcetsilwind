@@ -1,3 +1,4 @@
+/* stylelint-disable at-rule-allowed-list */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -48,6 +49,31 @@
       linear-gradient(180deg, #f8fbfd 0%, #e2f3f7 45%, #d4eaf0 100%);
     background-size: cover;
     background-position: center;
+  }
+
+  .popup-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(2px);
+    animation: kpFadeIn 200ms ease-out;
+  }
+
+  .popup-box {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 24px;
+    box-shadow: 0 8px 24px rgba(39, 60, 46, 0.16);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    text-align: center;
+    font-weight: 500;
+    color: #273c2e;
+    animation: kpScaleIn 250ms ease-out;
+    max-width: 90vw;
   }
 }
 
