@@ -758,10 +758,10 @@ useEffect(() => {
   return (
     <div className="flex min-h-screen flex-col bg-[#f8f5ee] text-[#1b3137]">
       <Header />
-      <main className="mx-auto w-full max-w-[1440px] flex-1 px-3 py-4 md:px-5 md:py-6">
+      <main className="mx-auto w-full max-w-[1440px] xl:max-w-[1720px] 2xl:max-w-[1860px] flex-1 px-3 py-4 md:px-5 md:py-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         {/* Sidebar Filters */}
-        <aside className="hidden h-fit rounded-2xl border border-[#d8e5e7] bg-[#eaf2f3] p-4 shadow-[0_8px_24px_rgba(27,49,55,0.08)] lg:sticky lg:top-36 lg:block lg:w-[270px]">
+        <aside className="hidden h-fit rounded-2xl border border-[#d8e5e7] bg-[#eaf2f3] p-4 shadow-[0_8px_24px_rgba(27,49,55,0.08)] lg:sticky lg:top-36 lg:block lg:w-[270px] 2xl:w-[300px]">
           <div>{renderFilters(false)}</div>
         </aside>
 
@@ -833,7 +833,7 @@ useEffect(() => {
               <p>No products found.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 2xl:gap-5">
               {sortedProducts.map((product) => (
                 <div
                   key={product.id}

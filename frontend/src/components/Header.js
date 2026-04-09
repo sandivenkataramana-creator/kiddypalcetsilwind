@@ -9,6 +9,7 @@ const Header = () => {
   const navigate = useNavigate();
   const { getCartItemCount } = useCart();
   const [user, setUser] = useState(null);
+  const [adminUser, setAdminUser] = useState(null);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [hoveredCategory, setHoveredCategory] = useState(null);
@@ -35,12 +36,25 @@ const Header = () => {
     if (storedUser && storedUser !== 'undefined') {
       try {
         setUser(JSON.parse(storedUser));
-        return;
       } catch (error) {
         console.error('Failed to parse user data:', error);
+        setUser(null);
       }
+    } else {
+      setUser(null);
     }
-    setUser(null);
+
+    const storedAdminUser = localStorage.getItem('adminUser');
+    if (storedAdminUser && storedAdminUser !== 'undefined') {
+      try {
+        setAdminUser(JSON.parse(storedAdminUser));
+      } catch (error) {
+        console.error('Failed to parse admin user data:', error);
+        setAdminUser(null);
+      }
+    } else {
+      setAdminUser(null);
+    }
   };
 
   useEffect(() => {
@@ -419,13 +433,15 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-3">
-          <button
-            type="button"
-            className={`flex cursor-pointer items-center justify-center rounded-xl p-1.5 text-[#273c2e] transition duration-300 ease-out xl:hidden ${mobileMenuOpen ? 'scale-105' : 'hover:scale-105 hover:bg-[#fff7eb]'}`}
-            onClick={() => setMobileMenuOpen((previous) => !previous)}
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          {!adminUser && (
+            <button
+              type="button"
+              className={`flex cursor-pointer items-center justify-center rounded-xl p-1.5 text-[#273c2e] transition duration-300 ease-out xl:hidden ${mobileMenuOpen ? 'scale-105' : 'hover:scale-105 hover:bg-[#fff7eb]'}`}
+              onClick={() => setMobileMenuOpen((previous) => !previous)}
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          )}
 
           <div className="icon search-icon relative inline-flex cursor-pointer items-center justify-center rounded-xl p-1.5 text-[#273c2e] transition hover:bg-[#fff7eb]" onClick={() => setSearchOpen((previous) => !previous)}>
             <Search size={21} />
