@@ -1787,7 +1787,16 @@ const handleCancelOrder = (orderId) => {
     } finally {
       localStorage.removeItem('adminToken');
       localStorage.removeItem('adminUser');
-      navigate('/');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+
+      try {
+        window.dispatchEvent(new Event('user-changed'));
+      } catch {
+        // ignore
+      }
+
+      navigate('/', { replace: true });
     }
   };
 

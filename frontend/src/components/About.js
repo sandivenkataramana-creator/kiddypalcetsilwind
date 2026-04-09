@@ -19,10 +19,10 @@ const About = () => {
   }, []);
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <Header />
 
-      <main className="mx-auto w-full max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-12 sm:px-6 lg:px-8">
         <section className="rounded-[28px] bg-white/85 p-6 shadow-soft ring-1 ring-black/5 backdrop-blur-sm sm:p-8 lg:p-10">
           <h1 className="mb-6 text-3xl font-extrabold tracking-tight text-[#222] sm:text-4xl">
             About Us
@@ -39,7 +39,7 @@ const About = () => {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 };
 

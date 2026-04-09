@@ -19,20 +19,20 @@ const StoreLocator = () => {
 
   if (loading)
     return (
-      <>
+      <div className="flex min-h-screen flex-col bg-white text-[#273c2e]">
         <Header />
-        <div className="mx-auto min-h-[60vh] w-full max-w-6xl px-4 py-10 text-base font-semibold text-[#273c2e] sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 text-base font-semibold text-[#273c2e] sm:px-6 lg:px-8">
           Loading stores...
-        </div>
+        </main>
         <Footer />
-      </>
+      </div>
     );
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col bg-white text-[#273c2e]">
       <Header />
 
-      <div className="min-h-screen bg-white px-4 py-8 text-[#273c2e] sm:px-6 lg:px-8 lg:py-10">
+      <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <div className="mx-auto w-full max-w-6xl">
           <h1 className="mb-8 text-3xl font-black tracking-tight sm:text-4xl">Our Stores</h1>
 
@@ -110,10 +110,10 @@ const StoreLocator = () => {
           })}
           </div>
         </div>
-      </div>
+      </main>
 
       <Footer />
-    </>
+    </div>
   );
 };
 

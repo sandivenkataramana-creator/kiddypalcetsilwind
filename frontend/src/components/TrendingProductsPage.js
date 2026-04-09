@@ -79,9 +79,9 @@ const TrendingProductsPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white text-[#273c2e]">
+      <div className="flex min-h-screen flex-col bg-white text-[#273c2e]">
         <Header />
-        <main className="flex min-h-[420px] items-center justify-center px-4 py-8">
+        <main className="flex flex-1 items-center justify-center px-4 py-8">
           <div className="rounded-2xl bg-[#fff7eb] px-5 py-3 text-sm font-semibold text-[#273c2e] ring-1 ring-[#dccaaa]/45">
             Loading trending products...
           </div>
@@ -92,9 +92,9 @@ const TrendingProductsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white text-[#273c2e]">
+    <div className="flex min-h-screen flex-col bg-white text-[#273c2e]">
       <Header />
-      <main className="mx-auto w-full max-w-[1440px] px-3 py-4 md:px-5">
+      <main className="mx-auto w-full max-w-[1440px] flex-1 px-3 py-4 md:px-5">
         {/* Products Section - Full Width */}
         <section className="min-h-[600px]">
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

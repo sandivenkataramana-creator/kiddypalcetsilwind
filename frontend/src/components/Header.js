@@ -30,6 +30,19 @@ const Header = () => {
   const typingTimer = useRef(null);
   const dropdownCloseTimer = useRef(null);
 
+  const syncUserFromStorage = () => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser && storedUser !== 'undefined') {
+      try {
+        setUser(JSON.parse(storedUser));
+        return;
+      } catch (error) {
+        console.error('Failed to parse user data:', error);
+      }
+    }
+    setUser(null);
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (headerRef.current?.contains(event.target)) return;
@@ -44,15 +57,21 @@ const Header = () => {
   }, []);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser && storedUser !== 'undefined') {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Failed to parse user data:', error);
-        setUser(null);
+    const onUserChanged = () => syncUserFromStorage();
+    const onStorageChanged = (event) => {
+      if (!event.key || event.key === 'user' || event.key === 'token' || event.key === 'adminToken' || event.key === 'adminUser') {
+        syncUserFromStorage();
       }
-    }
+    };
+
+    syncUserFromStorage();
+    window.addEventListener('user-changed', onUserChanged);
+    window.addEventListener('storage', onStorageChanged);
+
+    return () => {
+      window.removeEventListener('user-changed', onUserChanged);
+      window.removeEventListener('storage', onStorageChanged);
+    };
   }, []);
 
   useEffect(() => {

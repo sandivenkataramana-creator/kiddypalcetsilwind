@@ -432,10 +432,10 @@ const handleClearMainImage = async () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-emerald-50/40 to-slate-50 text-slate-900">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-white via-emerald-50/40 to-slate-50 text-slate-900">
       <Header />
 
-      <main className="px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+      <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 rounded-[28px] border border-emerald-100 bg-white/90 p-4 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur sm:p-6 lg:p-8">
           <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)]">
             <section className="flex flex-col gap-4 lg:flex-row">
@@ -579,61 +579,63 @@ const handleClearMainImage = async () => {
                 {product.stock_quantity > 0 ? 'In Stock' : 'Out of Stock'}
               </p>
 
-              <div className="mt-6 flex flex-wrap gap-3 w-full h-12 items-center">
-                <div className="flex gap-2 h-full items-center w-[110px]">
-                  {!isInCartMode ? (
-                    <>
+              <div className="mt-6 flex w-full flex-wrap items-center gap-3">
+                {product.stock_quantity > 0 ? (
+                  <>
+                    <div className="flex h-11 w-[110px] items-center gap-2">
+                      {!isInCartMode ? (
+                        <button
+                          className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 h-full flex items-center justify-center w-full"
+                          onClick={() => {
+                            addToCart({ ...product, original_price: product.mrp }, 1);
+                          }}
+                        >
+                          Add to Cart
+                        </button>
+                      ) : (
+                        <div className="flex items-center justify-between gap-2 rounded-lg border-2 border-slate-900 px-2 py-2 h-full w-full hover:bg-slate-100 transition">
+                          <button
+                            className="text-xl font-bold text-slate-900 transition leading-none"
+                            onClick={() => {
+                              if (cartQuantity <= 1) {
+                                removeFromCart(product.id);
+                                setIsInCartMode(false);
+                                setCartQuantity(1);
+                              } else {
+                                updateQuantity(product.id, cartQuantity - 1);
+                              }
+                            }}
+                          >
+                            –
+                          </button>
+                          <span className="text-center text-base font-bold text-slate-900 min-w-[30px]">
+                            {cartQuantity}
+                          </span>
+                          <button
+                            className="text-xl font-bold text-slate-900 transition disabled:text-slate-300 disabled:cursor-not-allowed leading-none"
+                            onClick={() => {
+                              updateQuantity(product.id, cartQuantity + 1);
+                            }}
+                            disabled={cartQuantity >= product.stock_quantity}
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex h-11 items-center gap-2">
                       <button
-                        className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 h-full flex items-center justify-center w-full"
-                        onClick={() => {
-                          addToCart({ ...product, original_price: product.mrp }, 1);
-                        }}
+                        className="rounded-xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-black whitespace-nowrap h-full flex items-center justify-center"
+                        onClick={() => navigate('/checkout', { state: { product, quantity: isInCartMode ? cartQuantity : 1 } })}
                       >
-                        Add to Cart
-                      </button>
-                    </>
-                  ) : (
-                    <div className="flex items-center justify-between gap-2 rounded-lg border-2 border-slate-900 px-2 py-2 h-full w-full hover:bg-slate-100 transition">
-                      <button
-                        className="text-xl font-bold text-slate-900 transition leading-none"
-                        onClick={() => {
-                          if (cartQuantity <= 1) {
-                            removeFromCart(product.id);
-                            setIsInCartMode(false);
-                            setCartQuantity(1);
-                          } else {
-                            updateQuantity(product.id, cartQuantity - 1);
-                          }
-                        }}
-                      >
-                        –
-                      </button>
-                      <span className="text-center text-base font-bold text-slate-900 min-w-[30px]">
-                        {cartQuantity}
-                      </span>
-                      <button
-                        className="text-xl font-bold text-slate-900 transition disabled:text-slate-300 disabled:cursor-not-allowed leading-none"
-                        onClick={() => {
-                          updateQuantity(product.id, cartQuantity + 1);
-                        }}
-                        disabled={cartQuantity >= product.stock_quantity}
-                      >
-                        +
+                        Buy Now
                       </button>
                     </div>
-                  )}
-                </div>
-                <div className="flex gap-2 h-full items-center">
-                  <button
-                    className="rounded-xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-black whitespace-nowrap h-full flex items-center justify-center"
-                    onClick={() => navigate('/checkout', { state: { product, quantity: isInCartMode ? cartQuantity : 1 } })}
-                  >
-                    Buy Now
-                  </button>
-                </div>
+                  </>
+                ) : null}
                 {isAdminLoggedIn && (
                   <button
-                    className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:border-emerald-400 hover:bg-emerald-100 h-full flex items-center justify-center"
+                    className="inline-flex h-11 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-400 hover:bg-emerald-100"
                     onClick={() => setShowEditModal(true)}
                   >
                     Edit Product

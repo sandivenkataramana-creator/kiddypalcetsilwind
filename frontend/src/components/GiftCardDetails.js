@@ -118,9 +118,9 @@ const GiftCardDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#273c2e]">
+    <div className="flex min-h-screen flex-col bg-white text-[#273c2e]">
       <Header />
-      <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         {loading && <p className="rounded-xl bg-[#fff7eb] px-4 py-3 text-sm font-semibold text-[#273c2e] ring-1 ring-[#ede6d9]">Loading...</p>}
         {error && <p className="rounded-xl bg-[#ffeeee] px-4 py-3 text-sm font-semibold text-red-600 ring-1 ring-[#fcc]">{error}</p>}
         {card && (

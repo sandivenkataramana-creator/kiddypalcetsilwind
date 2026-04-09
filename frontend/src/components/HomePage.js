@@ -80,7 +80,7 @@ const HeroSlider = ({ slides = [], interval = 2000 }) => {
         hoveringRef.current = false;
       }}
     >
-      <div className="relative aspect-[16/5] min-h-[200px] w-full sm:min-h-[260px] lg:min-h-[300px]">
+      <div className="relative aspect-[16/9] min-h-[220px] w-full sm:aspect-[16/5] sm:min-h-[260px] lg:min-h-[300px]">
         {slides.map((slide, index) => (
           <div
             key={slide.title || index}
@@ -89,11 +89,11 @@ const HeroSlider = ({ slides = [], interval = 2000 }) => {
             }`}
           >
             <img src={slide.image} alt={slide.title || slide.subtitle || 'Hero slide'} className="h-full w-full object-cover" />
-            <div className="absolute inset-y-0 left-0 w-full bg-gradient-to-r from-[#0f6a73]/15 via-transparent to-transparent" />
-            <div className="absolute inset-0 flex items-end p-2.5 sm:p-4 lg:p-5">
-              <div className="max-w-xl space-y-1.5 text-white pl-2 sm:pl-4 lg:pl-6">
-                {slide.title ? <h1 className="text-[1.35rem] font-extrabold tracking-tight sm:text-[2.1rem]">{slide.title}</h1> : null}
-                <p className="max-w-lg text-[0.68rem] leading-5 text-white/90 sm:text-[0.8rem]">{slide.subtitle}</p>
+            <div className="absolute inset-y-0 left-0 w-full bg-gradient-to-r from-black/50 via-black/25 to-transparent sm:from-[#0f6a73]/20 sm:via-transparent" />
+            <div className="absolute inset-0 flex items-end p-3 sm:p-4 lg:p-5">
+              <div className="max-w-xl space-y-2 text-white pl-1 pr-3 sm:pl-4 sm:pr-0 lg:pl-6">
+                {slide.title ? <h1 className="text-[1.7rem] font-extrabold leading-tight tracking-tight sm:text-[2.1rem]">{slide.title}</h1> : null}
+                <p className="max-w-[92%] text-[0.8rem] leading-5 text-white/95 sm:max-w-lg sm:text-[0.8rem]">{slide.subtitle}</p>
                 {slide.cta ? (
                   <button
                     type="button"
@@ -112,7 +112,7 @@ const HeroSlider = ({ slides = [], interval = 2000 }) => {
       <button
         type="button"
         onClick={() => setCurrent((value) => (value - 1 + slides.length) % slides.length)}
-        className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 px-2 py-1.5 text-lg font-semibold text-[#1b3137] shadow-lg transition hover:bg-white"
+        className="absolute left-3 top-1/2 z-10 hidden -translate-y-1/2 rounded-full bg-white/90 px-2 py-1.5 text-lg font-semibold text-[#1b3137] shadow-lg transition hover:bg-white sm:block"
         aria-label="Previous slide"
       >
         ‹
@@ -120,7 +120,7 @@ const HeroSlider = ({ slides = [], interval = 2000 }) => {
       <button
         type="button"
         onClick={() => setCurrent((value) => (value + 1) % slides.length)}
-        className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 px-2 py-1.5 text-lg font-semibold text-[#1b3137] shadow-lg transition hover:bg-white"
+        className="absolute right-3 top-1/2 z-10 hidden -translate-y-1/2 rounded-full bg-white/90 px-2 py-1.5 text-lg font-semibold text-[#1b3137] shadow-lg transition hover:bg-white sm:block"
         aria-label="Next slide"
       >
         ›
@@ -273,6 +273,7 @@ const HomePage = () => {
       },
       {
         image: slide3,
+        title: 'Delivered',
         subtitle: 'Get your orders delivered within 24 hours.',
         cta: 'Order Now',
         onClick: () => navigate('/products'),
@@ -294,10 +295,10 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f5ee] text-[#1b3137]">
+    <div className="flex min-h-screen flex-col bg-[#f8f5ee] text-[#1b3137]">
       <Header />
 
-      <main className="mx-auto w-full max-w-7xl space-y-8 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+      <main className="w-full flex-1 space-y-8 px-0 py-5 lg:py-7">
         <HeroSlider slides={slides} />
 
         <SectionShell title="Shop by Price" tone="soft">

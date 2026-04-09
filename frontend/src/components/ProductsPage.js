@@ -16,6 +16,7 @@ const ProductsPage = () => {
   const [message, setMessage] = useState('');
   const [highlightedProduct, setHighlightedProduct] = useState(null);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [mobileFilterTop, setMobileFilterTop] = useState(0);
   const [cartQuantities, setCartQuantities] = useState({});
   const productRefs = useRef({});
 
@@ -94,6 +95,34 @@ useEffect(() => {
     setCartQuantities(newQuantities);
   }
 }, [cartItems]);
+
+useEffect(() => {
+  if (!isMobileFiltersOpen) return undefined;
+
+  const originalOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
+
+  return () => {
+    document.body.style.overflow = originalOverflow;
+  };
+}, [isMobileFiltersOpen]);
+
+useEffect(() => {
+  if (!isMobileFiltersOpen) return undefined;
+
+  const updateDrawerTop = () => {
+    const header = document.querySelector('header');
+    const headerHeight = header ? Math.round(header.getBoundingClientRect().height) : 0;
+    setMobileFilterTop(headerHeight);
+  };
+
+  updateDrawerTop();
+  window.addEventListener('resize', updateDrawerTop);
+
+  return () => {
+    window.removeEventListener('resize', updateDrawerTop);
+  };
+}, [isMobileFiltersOpen]);
 
 
   // useEffect(() => {
@@ -638,10 +667,10 @@ useEffect(() => {
   ].filter(Boolean);
 
   const renderFilters = (isMobile = false) => (
-    <div>
+    <div className={isMobile ? 'space-y-3' : ''}>
       <h3 className="mb-4 text-xl font-extrabold text-[#104f58]">Filter Toys</h3>
 
-      <div className="mb-4">
+      <div className={isMobile ? 'mb-3' : 'mb-4'}>
         <h4 className="mb-2 text-base font-semibold text-[#1b3137] sm:text-lg">Price Range</h4>
         <select
           name="priceRange"
@@ -661,7 +690,7 @@ useEffect(() => {
         </select>
       </div>
 
-      <div className="mb-4">
+      <div className={isMobile ? 'mb-3' : 'mb-4'}>
         <h4 className="mb-2 text-base font-semibold text-[#1b3137] sm:text-lg">Age Range</h4>
         <select
           name="ageRange"
@@ -680,7 +709,7 @@ useEffect(() => {
         </select>
       </div>
 
-      <div className="mb-4">
+      <div className={isMobile ? 'mb-3' : 'mb-4'}>
         <h4 className="mb-2 text-base font-semibold text-[#1b3137] sm:text-lg">Brand</h4>
         <select
           name="brand"
@@ -714,9 +743,9 @@ useEffect(() => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f8f5ee] text-[#1b3137]">
+      <div className="flex min-h-screen flex-col bg-[#f8f5ee] text-[#1b3137]">
         <Header />
-        <main className="flex min-h-[420px] items-center justify-center px-4 py-8">
+        <main className="flex flex-1 items-center justify-center px-4 py-8">
           <div className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-[#1b3137] ring-1 ring-[#1b3137]/10 shadow-[0_8px_22px_rgba(27,49,55,0.08)]">
             Loading products...
           </div>
@@ -727,9 +756,9 @@ useEffect(() => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f5ee] text-[#1b3137]">
+    <div className="flex min-h-screen flex-col bg-[#f8f5ee] text-[#1b3137]">
       <Header />
-      <main className="mx-auto w-full max-w-[1440px] px-3 py-4 md:px-5 md:py-6">
+      <main className="mx-auto w-full max-w-[1440px] flex-1 px-3 py-4 md:px-5 md:py-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         {/* Sidebar Filters */}
         <aside className="hidden h-fit rounded-2xl border border-[#d8e5e7] bg-[#eaf2f3] p-4 shadow-[0_8px_24px_rgba(27,49,55,0.08)] lg:sticky lg:top-36 lg:block lg:w-[270px]">
@@ -973,15 +1002,18 @@ useEffect(() => {
         </section>
 
         {isMobileFiltersOpen && (
-          <div className="fixed inset-x-0 top-[84px] bottom-0 z-[1100] lg:hidden" role="dialog" aria-modal="true" aria-label="Filter products">
+          <div className="fixed inset-0 z-[1100] lg:hidden" role="dialog" aria-modal="true" aria-label="Filter products">
             <button
               type="button"
               aria-label="Close filters"
-              className="absolute inset-0 bg-black/35"
+              className="absolute inset-0 bg-black/35 backdrop-blur-[1px]"
               onClick={() => setIsMobileFiltersOpen(false)}
             />
 
-            <div className="absolute left-0 top-0 h-full w-72 overflow-y-auto border-r border-[#d8e5e7] bg-[#eaf2f3] p-4 shadow-[0_18px_40px_rgba(27,49,55,0.25)] rounded-tr-2xl rounded-br-2xl">
+            <div
+              className="absolute left-0 w-[74vw] max-w-[250px] overflow-y-auto overscroll-contain border-r border-[#d8e5e7] bg-[#eaf2f3] p-3 shadow-[0_18px_40px_rgba(27,49,55,0.25)] rounded-tr-2xl rounded-br-2xl sm:w-[68vw] sm:max-w-[280px] sm:p-4"
+              style={{ top: `${mobileFilterTop}px`, height: `calc(100dvh - ${mobileFilterTop}px)` }}
+            >
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#0f6a73]">Filters</p>
                 <button

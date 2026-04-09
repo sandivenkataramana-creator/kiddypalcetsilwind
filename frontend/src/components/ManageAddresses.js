@@ -161,9 +161,9 @@ const ManageAddresses = () => {
   }
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col bg-[#f5f5f5]">
       <Header />
-      <div className="min-h-screen bg-[#f5f5f5] py-8 sm:py-10">
+      <div className="flex-1 py-8 sm:py-10">
         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
           {/* Header Section */}
           <div className="mb-10 flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08)] lg:flex-row lg:items-center lg:justify-between">
@@ -249,7 +249,7 @@ const ManageAddresses = () => {
         </div>
       </div>
       <Footer />
-    </>
+    </div>
   );
 };
 
