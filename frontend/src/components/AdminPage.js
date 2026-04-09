@@ -2441,7 +2441,7 @@ if (isVerifying) {
     className={`tab-btn rounded-full border border-blue-200 bg-white text-slate-700 ${activeTab === 'manage' ? 'active !border-blue-500 !bg-blue-600 !text-white shadow-lg shadow-blue-200' : ''}`}
     onClick={() => switchAdminTab('manage', () => setMessage(''))}
   >
-    📦 Manage Products
+    📦 Manage Products 
   </button>
 
   <button 

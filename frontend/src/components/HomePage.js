@@ -295,10 +295,11 @@ const HomePage = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f8f5ee] text-[#1b3137]">
+    <div className="flex min-h-screen flex-col bg-[#f8f5ee] text-[#1b3137] overflow-x-hidden">
       <Header />
 
-      <main className="w-full flex-1 space-y-8 px-0 py-5 lg:py-7">
+     <main className="flex-1 py-5 lg:py-7 space-y-8 px-3 sm:px-4 lg:px-6 xl:px-10 2xl:px-20">
+ 
         <HeroSlider slides={slides} />
 
         <SectionShell title="Shop by Price" tone="soft">
@@ -308,9 +309,8 @@ const HomePage = () => {
                 key={price.label}
                 type="button"
                 onClick={() => navigate(`/products?price=0-${price.maxPrice}`)}
-                className="group overflow-hidden rounded-[28px] border border-[#dfe8ed] bg-white p-1 shadow-xl transition duration-300 hover:-translate-y-1 hover:shadow-2xl sm:p-1.5"
-              >
-                <div className="relative flex h-28 flex-col justify-between overflow-hidden rounded-lg sm:rounded-2xl lg:rounded-[24px] border border-white/70 bg-white/95 px-4 py-4 text-left shadow-[inset_0_0_0_1px_rgba(255,255,255,0.5)] price-card-image sm:h-32 sm:px-5 sm:py-5">
+                className="group overflow-hidden rounded-[28px] border border-[#dfe8ed] bg-white p-1">
+  <div className="relative flex h-28 flex-col justify-between overflow-hidden rounded-[26px] border border-white/70 bg-white/95 px-4 py-4 text-left shadow-[inset_0_0_0_1px_rgba(255,255,255,0.5)] price-card-image">
                   <div className="absolute -right-4 top-3 h-16 w-16 rounded-full bg-white/70 blur-2xl opacity-80" />
                   <div className="relative z-10">
                     <span className="text-[10px] font-semibold uppercase tracking-[0.38em] text-[#0f6a73]/80">
@@ -344,23 +344,33 @@ const HomePage = () => {
 
             <div
               ref={ageScrollRef}
-              className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-0.5 pb-2 scroll-smooth [scroll-padding-inline:0.125rem] sm:px-4 sm:[scroll-padding-inline:1rem] lg:overflow-x-auto lg:flex-nowrap lg:px-0 lg:pb-0 lg:[scroll-padding-inline:0]"
+              className="no-scrollbar flex gap-4 overflow-x-auto px-3 pb-2
+    sm:px-4
+    lg:overflow-visible lg:flex-wrap lg:justify-center
+    xl:gap-8
+    2xl:gap-14 overflow-x-auto px-3 pb-2 scroll-smooth [scroll-padding-inline:0.125rem] sm:px-4 sm:[scroll-padding-inline:1rem] lg:overflow-x-auto lg:flex-nowrap lg:px-0 lg:pb-0 lg:[scroll-padding-inline:0]"
             >
               {ageRanges.map((age) => (
-                <button
-                  key={age.age}
-                  data-scroll-card="true"
-                  type="button"
-                  onClick={() => navigate(`/products?age=${age.age}`)}
-                  className="min-w-[176px] sm:min-w-[200px] lg:min-w-[220px] snap-start rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
-                >
-                  <div className={`flex h-32 items-center justify-center rounded-lg sm:rounded-xl lg:rounded-2xl p-3 ${age.bgClass}`}>
-                    <img src={age.icon} alt={age.label} className="h-full w-full rounded-xl object-contain" />
-                  </div>
-                  <div className="mt-4 min-h-[2.5rem] text-sm font-bold uppercase tracking-wide text-[#1b3137]">
-                    {age.label}
-                  </div>
-                </button>
+              <button
+  key={age.age}
+  data-scroll-card="true"
+  type="button"
+  onClick={() => navigate(`/products?age=${age.age}`)}
+  className={`min-w-[160px] sm:min-w-[180px] lg:min-w-[200px] xl:min-w-[220px]
+flex-shrink-0 snap-start rounded-3xl border-2 border-[#ccdfe2] ${age.bgClass} p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md`}
+>
+  <div className="flex h-36 sm:h-40 items-center justify-center overflow-hidden rounded-2xl sm:rounded-3xl">
+  <img
+    src={age.icon}
+    alt={age.label}
+    className="h-full w-full object-cover"
+  />
+</div>
+
+  <div className="mt-4 min-h-[2.5rem] text-sm font-bold uppercase tracking-wide text-black">
+    {age.label}
+  </div>
+</button>
               ))}
             </div>
 
@@ -388,7 +398,7 @@ const HomePage = () => {
 
             <div
               ref={categoryScrollRef}
-              className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-0.5 pb-2 scroll-smooth [scroll-padding-inline:0.125rem] sm:px-4 sm:[scroll-padding-inline:1rem] lg:px-6 lg:[scroll-padding-inline:1.5rem]"
+              className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-3 pb-2 scroll-smooth [scroll-padding-inline:0.125rem] sm:px-4 sm:[scroll-padding-inline:1rem] lg:px-6 lg:[scroll-padding-inline:1.5rem]"
             >
               {(Array.isArray(categories) ? categories : []).slice(0, 9).map((category, index) => (
                 <button
@@ -531,20 +541,22 @@ const HomePage = () => {
               <button
                 type="button"
                 onClick={() => scrollRefByAmount(characterScrollRef, -1)}
-                className="absolute left-1 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-lg text-[#1b3137] shadow-md transition hover:bg-white sm:left-2 sm:flex"
+                className="absolute left-1 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-lg text-[#1b3137] shadow-md transition hover:bg-white sm:left-2 sm:flex "
                 aria-label="Scroll characters left"
               >
                 ‹
               </button>
 
-              <div ref={characterScrollRef} className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-0.5 pb-2 scroll-smooth [scroll-padding-inline:0.125rem] sm:px-4 sm:[scroll-padding-inline:1rem] lg:px-6 lg:[scroll-padding-inline:1.5rem]">
+              <div ref={characterScrollRef} className="  no-scrollbar flex gap-4 sm:gap-5 lg:gap-6 xl:gap-8 2xl:gap-10
+  overflow-x-auto px-3 sm:px-4 xl:px-10 2xl:px-16
+  scroll-smooth px-3 pb-2 scroll-smooth [scroll-padding-inline:0.125rem] sm:px-4 sm:[scroll-padding-inline:1rem] lg:px-6 lg:[scroll-padding-inline:1.5rem]">
                 {tags.map((character) => (
                   <button
                     key={character.id}
                     data-scroll-card="true"
                     type="button"
                     onClick={() => navigate(`/products?tag=${character.id}`)}
-                    className="min-w-[176px] sm:min-w-[200px] lg:min-w-[220px] snap-start rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
+                    className="min-w-[160px] sm:min-w-[180px] lg:min-w-[200px] xl:min-w-[220px] 2xl:min-w-[240px] snap-start rounded-3xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
                   >
                     {character.image ? (
                       <img
@@ -568,7 +580,7 @@ const HomePage = () => {
               <button
                 type="button"
                 onClick={() => scrollRefByAmount(characterScrollRef, 1)}
-                className="absolute right-1 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-2xl text-[#1b3137] shadow-md transition hover:bg-white sm:right-2 sm:flex"
+                className="absolute right-1 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-2xl text-[#1b3137] shadow-md transition hover:bg-white sm:right-2 sm:flex "
                 aria-label="Scroll characters right"
               >
                 ›
@@ -578,6 +590,7 @@ const HomePage = () => {
             <p className="py-10 text-center text-sm text-[#999]">No characters/themes available yet</p>
           )}
         </SectionShell>
+       
       </main>
 
       <Footer />
