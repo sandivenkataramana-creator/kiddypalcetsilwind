@@ -761,7 +761,7 @@ useEffect(() => {
       <main className="mx-auto w-full max-w-[1440px] xl:max-w-[1720px] 2xl:max-w-[1860px] flex-1 px-3 py-4 md:px-5 md:py-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         {/* Sidebar Filters */}
-        <aside className="hidden h-fit rounded-2xl border border-[#d8e5e7] bg-[#eaf2f3] p-4 shadow-[0_8px_24px_rgba(27,49,55,0.08)] lg:sticky lg:top-36 lg:block lg:w-[270px] 2xl:w-[300px]">
+        <aside className="hidden h-fit rounded-2xl border border-[#d8e5e7] bg-[#eaf2f3 ] p-4 shadow-[0_8px_24px_rgba(27,49,55,0.08)] lg:sticky lg:top-36 lg:block lg:w-[270px] 2xl:w-[300px]">
           <div>{renderFilters(false)}</div>
         </aside>
 
@@ -868,7 +868,7 @@ useEffect(() => {
 
   {/* 🔥 Discount badge from DB */}
   {product.discount_percent > 0 && (
-    <div className="absolute right-2 top-2 z-[6] rounded-full bg-gradient-to-r from-[#f46f56] to-[#ff9774] px-2 py-1 text-[11px] font-bold leading-none text-white shadow-[0_6px_16px_rgba(244,111,86,0.28)]">
+    <div className="absolute right-2 top-2 z-[6] rounded-full bg-gradient-to-r from-[#2e79e3] to-[#245fb1] px-2 py-1 text-[11px] font-bold leading-none text-white shadow-[0_6px_16px_rgba(46,121,227,0.28)]">
       {product.discount_percent}% OFF
     </div>
   )}
@@ -942,9 +942,9 @@ useEffect(() => {
                       <div className="mt-2.5 w-full h-[44px] flex items-center justify-center">
                         {cartQuantities[product.id] ? (
                           <div className="w-full flex items-center justify-between gap-2">
-                            <div className="w-[45%] flex items-center justify-between gap-1.5 rounded-lg border border-[#0f6a73] px-2 py-1 hover:bg-slate-100 transition">
+                            <div className="w-[45%] flex items-center justify-between gap-1.5 rounded-lg border border-[#2e79e3] px-2 py-1 hover:bg-[#f2f6ff] transition">
                               <button
-                                className="text-base font-bold text-[#0f6a73] transition leading-none"
+                                className="text-base font-bold text-[#2e79e3] transition leading-none"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (cartQuantities[product.id] <= 1) {
@@ -956,11 +956,11 @@ useEffect(() => {
                               >
                                 –
                               </button>
-                              <span className="text-center text-sm font-bold text-[#0f6a73] min-w-[25px]">
+                              <span className="text-center text-sm font-bold text-[#2e79e3] min-w-[25px]">
                                 {cartQuantities[product.id]}
                               </span>
                               <button
-                                className="text-base font-bold text-[#0f6a73] transition disabled:text-[#ccc] disabled:cursor-not-allowed leading-none"
+                                className="text-base font-bold text-[#2e79e3] transition disabled:text-[#ccc] disabled:cursor-not-allowed leading-none"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (cartQuantities[product.id] < product.stock_quantity) {
@@ -979,7 +979,7 @@ useEffect(() => {
                             className={`w-full h-full inline-flex items-center justify-center rounded-xl border-2 px-4 py-2 text-[0.95rem] font-semibold transition ${
                               product.stock_quantity <= 0
                                 ? 'cursor-not-allowed border-[#ccc] bg-[#ccc] text-white'
-                                : 'border-[#0f6a73] bg-white text-[#0f6a73] hover:bg-[#0f6a73] hover:text-white hover:shadow-[0_8px_18px_rgba(15,106,115,0.3)]'
+                                : 'border-[#2e79e3] bg-white text-[#2e79e3] hover:bg-[#2e79e3] hover:text-white hover:shadow-[0_8px_18px_rgba(46,121,227,0.3)]'
                             }`}
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1011,7 +1011,7 @@ useEffect(() => {
             />
 
             <div
-              className="absolute left-0 w-[74vw] max-w-[250px] overflow-y-auto overscroll-contain border-r border-[#d8e5e7] bg-[#eaf2f3] p-3 shadow-[0_18px_40px_rgba(27,49,55,0.25)] rounded-tr-2xl rounded-br-2xl sm:w-[68vw] sm:max-w-[280px] sm:p-4"
+              className="absolute left-0 w-[74vw] max-w-[250px] overflow-y-auto overscroll-contain border-r border-[#d8e5e7] bg-[#eaf2f3 ] p-3 shadow-[0_18px_40px_rgba(27,49,55,0.25)] rounded-tr-2xl rounded-br-2xl sm:w-[68vw] sm:max-w-[280px] sm:p-4"
               style={{ top: `${mobileFilterTop}px`, height: `calc(100dvh - ${mobileFilterTop}px)` }}
             >
               <div className="mb-3 flex items-center justify-between">

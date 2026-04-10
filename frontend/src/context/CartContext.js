@@ -85,7 +85,8 @@ useEffect(() => {
           price: Number(item.price) || 0,
           original_price: Number(item.original_price) || Number(item.price) || 0,
           quantity: Number(item.quantity) || 1,
-          image: item.image || '',
+          image: item.image || item.image_url || item.imageUrl || '',
+          image_url: item.image_url || item.image || item.imageUrl || '',
           description: item.description || '',
           age_range: item.age_range || '',
           stock_quantity: item.stock_quantity || 999,
@@ -111,7 +112,8 @@ useEffect(() => {
         price: item.price,
         original_price: item.original_price || item.price,
         quantity: item.quantity,
-        image: item.image,
+        image: item.image || item.image_url || '',
+        image_url: item.image_url || item.image || '',
         description: item.description || '',
         age_range: item.age_range || '',
         stock_quantity: item.stock_quantity || 999,
@@ -125,11 +127,43 @@ useEffect(() => {
   }, [cartItems, currentUserId]);
 
 
+  const getFirstValidImage = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string' && value.trim()) return value;
+
+    if (Array.isArray(value)) {
+      for (const entry of value) {
+        const candidate = getFirstValidImage(entry);
+        if (candidate) return candidate;
+      }
+      return '';
+    }
+
+    if (typeof value === 'object') {
+      return (
+        getFirstValidImage(value.image_url) ||
+        getFirstValidImage(value.imageUrl) ||
+        getFirstValidImage(value.url) ||
+        getFirstValidImage(value.image) ||
+        ''
+      );
+    }
+
+    return '';
+  };
+
   // ✅ Normalize product structure for consistent cart data
   const normalizeProduct = (p) => {
     const id = p.id ?? p.sno ?? p.product_id ?? `${Date.now()}-${Math.random()}`;
     const price = Number(p.price ?? p.mrp ?? 0) || 0;
     const originalPrice = Number(p.original_price ?? p.mrp ?? 0) || 0;
+    const resolvedImage =
+      getFirstValidImage(p.image) ||
+      getFirstValidImage(p.image_url) ||
+      getFirstValidImage(p.imageUrl) ||
+      getFirstValidImage(p.product_images) ||
+      getFirstValidImage(p.images) ||
+      '';
     // If original_price is not set but we have a higher price value, use that
     const finalOriginalPrice = originalPrice > price ? originalPrice : price;
     return {
@@ -137,7 +171,8 @@ useEffect(() => {
       name: p.name ?? p.product_name ?? '',
       price,
       original_price: finalOriginalPrice,
-      image: p.image ?? (Array.isArray(p.images) ? p.images[0] : '') ?? '',
+      image: resolvedImage,
+      image_url: resolvedImage,
       stock_quantity: p.stock_quantity ?? p.stock_qty ?? p.stock ?? 999,
       description: p.description ?? '',
       age_range: p.age_range ?? '',

@@ -43,7 +43,7 @@ const StoreLocator = () => {
             return (
               <div key={store.id} className="grid items-center gap-8 md:grid-cols-2 md:gap-10">
                 {/* LEFT SIDE */}
-                <div className="flex justify-center">
+                <div className={`flex justify-center ${isEven ? 'order-2 md:order-1' : 'order-1 md:order-1'}`}>
                   {isEven ? (
                     <div className="w-full max-w-[450px] rounded-2xl border border-[#ede6d9] bg-[#fffaf1] p-5 shadow-[0_8px_20px_rgba(39,60,46,0.08)]">
                       <h3 className="text-xl font-bold text-[#273c2e]">{store.name}</h3>
@@ -75,7 +75,7 @@ const StoreLocator = () => {
                 </div>
 
                 {/* RIGHT SIDE */}
-                <div className="flex justify-center">
+                <div className={`flex justify-center ${isEven ? 'order-1 md:order-2' : 'order-2 md:order-2'}`}>
                   {isEven ? (
                     <div className="h-[240px] w-full max-w-[450px] overflow-hidden rounded-2xl bg-[#eee] shadow-[0_8px_20px_rgba(39,60,46,0.1)]">
                       {store.image_url ? (

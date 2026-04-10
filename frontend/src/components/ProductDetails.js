@@ -585,7 +585,7 @@ const handleClearMainImage = async () => {
                     <div className="flex h-11 w-[110px] items-center gap-2">
                       {!isInCartMode ? (
                         <button
-                          className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 h-full flex items-center justify-center w-full"
+                          className="rounded-xl bg-[#2e79e3] px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#245fb1] h-full flex items-center justify-center w-full"
                           onClick={() => {
                             addToCart({ ...product, original_price: product.mrp }, 1);
                           }}
@@ -625,7 +625,7 @@ const handleClearMainImage = async () => {
                     </div>
                     <div className="flex h-11 items-center gap-2">
                       <button
-                        className="rounded-xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-black whitespace-nowrap h-full flex items-center justify-center"
+                        className="rounded-xl border border-[#2e79e3] bg-[#2e79e3] px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#245fb1] whitespace-nowrap h-full flex items-center justify-center"
                         onClick={() => navigate('/checkout', { state: { product, quantity: isInCartMode ? cartQuantity : 1 } })}
                       >
                         Buy Now
