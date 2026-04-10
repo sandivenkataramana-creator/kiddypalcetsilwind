@@ -550,7 +550,7 @@ const handleClearMainImage = async () => {
                 {product.description}
               </p>
 
-              <div className="mt-6 flex flex-wrap items-center gap-3">
+              <div className="mt-4 flex flex-wrap items-center gap-3">
                 {(() => {
                   const mrp = Number(product.mrp);
                   const price = Number(product.price);
@@ -561,10 +561,10 @@ const handleClearMainImage = async () => {
                       <>
                         <span className="text-3xl font-black text-slate-900">₹{price.toFixed(2)}</span>
                         <span className="text-lg text-slate-400 line-through">MRP ₹{mrp.toFixed(2)}</span>
-                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-bold text-emerald-700">
+                        <span className="rounded-full bg-[#e8f1ff] px-3 py-1 text-sm font-bold text-[#2e79e3]">
                           {discountPercent}% off
                         </span>
-                        <span className="text-sm font-bold text-emerald-700">
+                        <span className="text-sm font-bold text-[#2e79e3]">
                           You Saved (₹{saved.toFixed(0)})
                         </span>
                       </>
@@ -575,7 +575,7 @@ const handleClearMainImage = async () => {
                 })()}
               </div>
 
-              <p className={`mt-4 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${product.stock_quantity > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+              <p className={`mt-4 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${product.stock_quantity > 0 ? 'bg-[#e8f1ff] text-[#2e79e3]' : 'bg-rose-50 text-rose-700'}`}>
                 {product.stock_quantity > 0 ? 'In Stock' : 'Out of Stock'}
               </p>
 

@@ -483,7 +483,7 @@ flex-shrink-0 snap-start rounded-3xl border-2 border-[#ccdfe2] ${age.bgClass} p-
                 className="relative flex h-full flex-col rounded-lg sm:rounded-xl lg:rounded-2xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
               >
                 {item.discount_percent > 0 ? (
-                  <span className="absolute right-3 top-3 rounded-full bg-gradient-to-r from-[#f46f56] to-[#ff9774] px-3 py-1 text-[11px] font-bold text-white shadow-md">
+                  <span className="absolute right-3 top-3 rounded-full bg-gradient-to-r from-[#2e79e3] to-[#245fb1] px-3 py-1 text-[11px] font-bold text-white shadow-[0_6px_16px_rgba(46,121,227,0.28)]">
                     {item.discount_percent}% OFF
                   </span>
                 ) : null}
@@ -558,7 +558,7 @@ flex-shrink-0 snap-start rounded-3xl border-2 border-[#ccdfe2] ${age.bgClass} p-
                 className="relative flex h-full flex-col rounded-lg sm:rounded-xl lg:rounded-2xl border-2 border-[#ccdfe2] bg-white p-2.5 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
               >
                 {item.discount_percent > 0 ? (
-                  <span className="absolute right-3 top-3 rounded-full bg-gradient-to-r from-[#f46f56] to-[#ff9774] px-3 py-1 text-[11px] font-bold text-white shadow-md">
+                  <span className="absolute right-3 top-3 rounded-full bg-gradient-to-r from-[#2e79e3] to-[#245fb1] px-3 py-1 text-[11px] font-bold text-white shadow-[0_6px_16px_rgba(46,121,227,0.28)]">
                     {item.discount_percent}% OFF
                   </span>
                 ) : null}
