@@ -81,21 +81,27 @@ const LoginPage = () => {
   };
 
   const inputBaseClass =
-    'w-full rounded-xl border-2 border-[#e0e0e0] bg-[#f9f9f9] px-3 py-2 text-xs sm:px-3.5 sm:py-2.5 sm:text-xs md:px-4 md:py-2.5 md:text-sm text-[#273c2e] transition focus:-translate-y-0.5 focus:border-[#2e79e3] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#2e79e3]/20';
+    'w-full rounded-xl border-2 border-[#e0e0e0] bg-[#f9f9f9] px-3 py-2 text-xs sm:px-3.5 sm:py-2.5  sm:text-xs md:px-4 md:py-2.5 md:text-sm text-[#273c2e] transition focus:-translate-y-0.5 focus:border-[#2e79e3] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#2e79e3]/20 ';
   const labelClass = 'mb-1.5 block text-xs font-semibold text-[#273c2e] sm:text-xs md:text-sm';
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <Header />
       <main className="flex flex-1 items-center justify-center px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
-        <div className="w-full max-w-xs sm:max-w-sm">
-          <div className="overflow-hidden rounded-2xl border border-[#ede6d9] bg-white shadow-[0_12px_32px_rgba(39,60,46,0.08)]">
+        <div className="w-full max-w-xs sm:max-w-sm [@media(min-width:1920px)]:max-w-xl
+[@media(min-width:2560px)]:max-w-2xl">
+        <div className="overflow-hidden rounded-2xl border border-[#ede6d9] bg-white shadow-[0_12px_32px_rgba(39,60,46,0.08)]">
             <div className="bg-[#2e79e3] px-4 py-3 text-center text-white sm:px-5 sm:py-3.5">
-              <h2 className="text-xl font-black tracking-tight sm:text-2xl">Welcome Back!</h2>
+              <h2 className="text-xl font-black tracking-tight sm:text-2xl [@media(min-width:1920px)]:text-3xl 
+[@media(min-width:2560px)]:text-4xl">Welcome Back!</h2>
               <p className="mt-0.5 text-xs text-white/85 sm:text-sm">Login to continue shopping</p>
             </div>
 
-            <div className="bg-white px-3 py-5 sm:px-4 sm:py-5">
+            <div className="bg-white px-3 py-5 sm:px-4 sm:py-5 [@media(min-width:1920px)]:px-6 
+[@media(min-width:1920px)]:py-6
+
+[@media(min-width:2560px)]:px-10 
+[@media(min-width:2560px)]:py-10">
               {error && (
                 <div className="mb-4 rounded-xl border border-[#fcc] bg-[#ffeeee] px-3 py-2 text-xs font-medium text-[#b42828] sm:mb-4.5 sm:px-3.5 sm:py-2.5 sm:text-xs">
                   {error}

@@ -3665,7 +3665,7 @@ if (isVerifying) {
                     <img
                       src={imageSrc}
                       alt={product.name || product.product_name || "Product"}
-                      className="h-full w-full rounded-xl object-cover"
+                      className="h-full w-full rounded-xl object-contain"
                       onError={(e) => {
                         e.currentTarget.onerror = null;
                         e.currentTarget.style.display = "none";
