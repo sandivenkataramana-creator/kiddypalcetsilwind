@@ -25,10 +25,31 @@ const CartPage = () => {
   };
 
   const resolveImageSrc = (item) => {
-    const raw = item.image_url || item.image || item.imageUrl || '';
-    if (!raw || typeof raw !== 'string') return '';
+    const pickImage = (value) => {
+      if (!value) return '';
+      if (typeof value === 'string' && value.trim()) return value.trim();
+      if (Array.isArray(value)) {
+        for (const entry of value) {
+          const selected = pickImage(entry);
+          if (selected) return selected;
+        }
+        return '';
+      }
+      if (typeof value === 'object') {
+        return pickImage(value.image_url) || pickImage(value.imageUrl) || pickImage(value.url) || pickImage(value.image);
+      }
+      return '';
+    };
 
-    const trimmed = raw.trim();
+    const trimmed =
+      pickImage(item.image_url) ||
+      pickImage(item.image) ||
+      pickImage(item.imageUrl) ||
+      pickImage(item.product_images) ||
+      pickImage(item.images) ||
+      '';
+    if (!trimmed) return '';
+
     if (trimmed.startsWith('http') || trimmed.startsWith('data:')) return trimmed;
     if (trimmed.startsWith('/')) return `${API_BASE_URL}${trimmed}`;
     return `${API_BASE_URL}/${trimmed}`;

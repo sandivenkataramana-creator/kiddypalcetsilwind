@@ -316,7 +316,7 @@ const Header = () => {
                   <span className="inline-flex h-10 w-10 flex-none items-center justify-center rounded-full bg-[#f4f7f5] text-[#2e79e3]"><MapPin size={20} /></span>
                   <span className="text-sm font-medium leading-5">Narsingi - 70750 04435</span>
                 </a>
-                <a href="https://www.google.com/maps/search/?api=1&query=Kiddy+Palace+Nanakramguda" target="_blank" rel="noopener noreferrer" className="mt-2 flex items-center gap-3 rounded-xl px-3 py-2 text-[#273c2e] transition hover:bg-[#fff7eb]">
+                <a href="https://maps.app.goo.gl/Jcd566Yfqso1SZAD9" target="_blank" rel="noopener noreferrer" className="mt-2 flex items-center gap-3 rounded-xl px-3 py-2 text-[#273c2e] transition hover:bg-[#fff7eb]">
                   <span className="inline-flex h-10 w-10 flex-none items-center justify-center rounded-full bg-[#f4f7f5] text-[#2e79e3]"><MapPin size={20} /></span>
                   <span className="text-sm font-medium leading-5">Nanakramguda - 92912 55974</span>
                 </a>
@@ -433,15 +433,13 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-3">
-          {!adminUser && (
-            <button
-              type="button"
-              className={`flex cursor-pointer items-center justify-center rounded-xl p-1.5 text-[#273c2e] transition duration-300 ease-out xl:hidden ${mobileMenuOpen ? 'scale-105' : 'hover:scale-105 hover:bg-[#fff7eb]'}`}
-              onClick={() => setMobileMenuOpen((previous) => !previous)}
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          )}
+          <button
+            type="button"
+            className={`flex cursor-pointer items-center justify-center rounded-xl p-1.5 text-[#273c2e] transition duration-300 ease-out xl:hidden ${mobileMenuOpen ? 'scale-105' : 'hover:scale-105 hover:bg-[#fff7eb]'}`}
+            onClick={() => setMobileMenuOpen((previous) => !previous)}
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
 
           <div className="icon search-icon relative inline-flex cursor-pointer items-center justify-center rounded-xl p-1.5 text-[#273c2e] transition hover:bg-[#fff7eb]" onClick={() => setSearchOpen((previous) => !previous)}>
             <Search size={21} />
