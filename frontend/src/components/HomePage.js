@@ -71,8 +71,18 @@ const HeroSlider = ({ slides = [], interval = 2000 }) => {
   if (!slides.length) return null;
 
   return (
-    <div
-      className="relative overflow-hidden rounded-lg sm:rounded-xl lg:rounded-[26px] bg-[#0f6a73] shadow-[0_16px_40px_rgba(15,106,115,0.22)] ring-1 ring-[#0f6a73]/25"
+   <div
+  className="
+    relative overflow-hidden 
+    rounded-lg sm:rounded-xl lg:rounded-[26px] 
+    bg-[#0f6a73]
+
+    xl:mx-[-30px]
+    2xl:mx-[-60px]
+    3xl:mx-[-120px]
+    [@media(min-width:2560px)]:mx-[-60px]
+  "
+
       onMouseEnter={() => {
         hoveringRef.current = true;
       }}
@@ -144,7 +154,16 @@ const HeroSlider = ({ slides = [], interval = 2000 }) => {
 const SectionShell = ({ id, title, actionLabel, onAction, children, centeredTitle = false, tone = 'soft' }) => (
   <section
     id={id}
-    className={`scroll-mt-32 rounded-lg sm:rounded-xl lg:rounded-[20px] border-2 p-4 shadow-[0_12px_30px_rgba(27,49,55,0.1)] sm:p-5 ${
+    className={` scroll-mt-32 
+    rounded-lg sm:rounded-xl lg:rounded-[20px] 
+    border-2 
+    p-4 sm:p-5 
+    shadow-[0_12px_30px_rgba(27,49,55,0.1)]
+
+    xl:mx-[-30px]
+    2xl:mx-[-60px]
+    3xl:mx-[-120px]
+    4xl:mx-[-160px] ${
       tone === 'soft' ? 'border-[#d5dfd7] bg-[#fbfbf6]' : 'border-[#c7d9dc] bg-white'
     }`}
   >
@@ -288,7 +307,7 @@ const HomePage = () => {
 
     const card = track.querySelector('[data-scroll-card="true"]');
     const cardWidth = card ? card.getBoundingClientRect().width : 240;
-    const gap = 16;
+    const gap = window.innerWidth >= 1024 ? 24 : 16;
     const step = Math.round(cardWidth + gap);
 
     track.scrollBy({ left: direction * step, behavior: 'smooth' });
@@ -298,7 +317,19 @@ const HomePage = () => {
     <div className="flex min-h-screen flex-col bg-[#f8f5ee] text-[#1b3137] overflow-x-hidden">
       <Header />
 
-     <main className="flex-1 py-5 lg:py-7 space-y-8 px-3 sm:px-4 lg:px-6 xl:px-10 2xl:px-20">
+     <main className="flex-1 py-5 lg:py-7 space-y-10 px-3 sm:px-4 lg:px-6 xl:px-10 2xl:px-20 [@media(min-width:2560px)]:px-32">
+      <div className="
+  mx-auto w-full 
+  max-w-[1400px] 
+  xl:max-w-[1600px] 
+  2xl:max-w-[1800px] 
+  3xl:max-w-[2000px]
+
+  [@media(min-width:2560px)]:max-w-[2400px]
+">
+    
+    
+
  
         <HeroSlider slides={slides} />
 
@@ -336,20 +367,31 @@ const HomePage = () => {
             <button
               type="button"
               onClick={() => scrollRefByAmount(ageScrollRef, -1)}
-              className="absolute left-1 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-lg text-[#1b3137] shadow-md transition hover:bg-white sm:left-2 sm:flex lg:hidden"
+              className="absolute left-1 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-lg text-[#1b3137] shadow-md transition hover:bg-white sm:left-2 sm:flex "
               aria-label="Scroll ages left"
             >
               ‹
             </button>
 
-            <div
-              ref={ageScrollRef}
-              className="no-scrollbar flex gap-4 overflow-x-auto px-3 pb-2
+           <div
+  ref={ageScrollRef}
+  className="
+    no-scrollbar 
+    flex 
+    gap-4 
+    overflow-x-auto 
+    px-3 pb-2 
+    scroll-smooth
+    lg:overflow-x-hidden
+lg:justify-between
+
     sm:px-4
-    lg:overflow-visible lg:flex-wrap lg:justify-center
-    xl:gap-8
-    2xl:gap-14 overflow-x-auto px-3 pb-2 scroll-smooth [scroll-padding-inline:0.125rem] sm:px-4 sm:[scroll-padding-inline:1rem] lg:overflow-x-auto lg:flex-nowrap lg:px-0 lg:pb-0 lg:[scroll-padding-inline:0]"
-            >
+
+    lg:gap-5
+    xl:gap-6
+    2xl:gap-7
+  "
+>
               {ageRanges.map((age) => (
               <button
   key={age.age}
@@ -377,7 +419,7 @@ flex-shrink-0 snap-start rounded-3xl border-2 border-[#ccdfe2] ${age.bgClass} p-
             <button
               type="button"
               onClick={() => scrollRefByAmount(ageScrollRef, 1)}
-              className="absolute right-1 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-lg text-[#1b3137] shadow-md transition hover:bg-white sm:right-2 sm:flex lg:hidden"
+              className="absolute right-1 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-lg text-[#1b3137] shadow-md transition hover:bg-white sm:right-2 sm:flex "
               aria-label="Scroll ages right"
             >
               ›
@@ -445,12 +487,14 @@ flex-shrink-0 snap-start rounded-3xl border-2 border-[#ccdfe2] ${age.bgClass} p-
                     {item.discount_percent}% OFF
                   </span>
                 ) : null}
-                <img
-                  src={item.image_url ? `${API_BASE_URL}${item.image_url}` : '/placeholder-product.png'}
-                  alt={item.name}
-                  loading="lazy"
-                  className="h-32 w-full rounded-lg sm:rounded-lg lg:rounded-xl object-cover"
-                />
+               <div className="h-40 w-full flex items-center justify-center bg-white rounded-lg sm:rounded-lg lg:rounded-xl p-2">
+  <img
+    src={item.image_url ? `${API_BASE_URL}${item.image_url}` : '/placeholder-product.png'}
+    alt={item.name}
+    loading="lazy"
+    className="max-h-full max-w-full object-contain"
+  />
+</div>
                 <div className="mt-4 space-y-1.5">
                   <h3 className="line-clamp-2 text-sm font-semibold leading-5 text-[#1b3137]">{item.name}</h3>
                   <p className="text-base font-bold text-[#0f6a73]">₹{item.price}</p>
@@ -518,12 +562,14 @@ flex-shrink-0 snap-start rounded-3xl border-2 border-[#ccdfe2] ${age.bgClass} p-
                     {item.discount_percent}% OFF
                   </span>
                 ) : null}
-                <img
-                  className="h-36 w-full rounded-lg sm:rounded-lg lg:rounded-xl object-cover"
-                  src={item.image_url ? `${API_BASE_URL}${item.image_url}` : '/placeholder-product.png'}
-                  alt={item.name}
-                  loading="lazy"
-                />
+               <div className="h-44 w-full flex items-center justify-center bg-white rounded-lg sm:rounded-lg lg:rounded-xl p-2">
+  <img
+    src={item.image_url ? `${API_BASE_URL}${item.image_url}` : '/placeholder-product.png'}
+    alt={item.name}
+    loading="lazy"
+    className="max-h-full max-w-full object-contain"
+  />
+</div>
                 <div className="mt-4 space-y-1.5">
                   <h3 className="line-clamp-2 text-sm font-semibold leading-5 text-[#1b3137]">{item.name}</h3>
                   <p className="text-base font-bold text-[#0f6a73]">₹{item.price}</p>
@@ -590,7 +636,7 @@ flex-shrink-0 snap-start rounded-3xl border-2 border-[#ccdfe2] ${age.bgClass} p-
             <p className="py-10 text-center text-sm text-[#999]">No characters/themes available yet</p>
           )}
         </SectionShell>
-       
+        </div>
       </main>
 
       <Footer />

@@ -130,3 +130,18 @@
     opacity: 1;
   }
 }
+@media (min-width: 1920px) {
+  body,
+  #root {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .container,
+  .mx-auto {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}

@@ -2410,7 +2410,17 @@ if (isVerifying) {
   return (
     <div className="admin-page flex min-h-screen flex-col bg-gradient-to-b from-slate-50 via-white to-emerald-50 text-slate-900 [&_button]:inline-flex [&_button]:min-h-[40px] [&_button]:items-center [&_button]:justify-center [&_button]:whitespace-nowrap [&_button]:align-middle [&_input]:w-full [&_select]:w-full [&_textarea]:w-full [&_input]:rounded-xl [&_select]:rounded-xl [&_textarea]:rounded-xl [&_input]:border-slate-200 [&_select]:border-slate-200 [&_textarea]:border-slate-200 [&_.tab-navigation]:grid [&_.tab-navigation]:grid-cols-2 [&_.tab-navigation]:gap-3 sm:[&_.tab-navigation]:grid-cols-3 lg:[&_.tab-navigation]:grid-cols-4 xl:[&_.tab-navigation]:grid-cols-6 2xl:[&_.tab-navigation]:grid-cols-8 [&_.tab-btn]:w-full [&_.tab-btn]:min-h-[56px] [&_.tab-btn]:rounded-2xl [&_.tab-btn]:px-3 [&_.tab-btn]:py-3 [&_.tab-btn]:text-[13px] [&_.tab-btn]:font-semibold [&_.tab-btn]:normal-case [&_.tab-btn]:tracking-normal [&_.tab-btn]:leading-tight [&_.tab-btn]:text-center [&_.tab-btn]:shadow-sm [&_.tab-btn]:transition [&_.tab-btn:hover]:shadow-md">
       <Header />
-      <main className="admin-content flex-1 px-4 py-6 sm:px-6 lg:px-8">
+      <main
+  className="
+    w-full
+    px-4
+
+    xl:px-8
+    2xl:px-10
+
+    [@media(min-width:1920px)]:px-20
+  "
+>
         <div className="admin-container mx-auto w-full max-w-[1300px] xl:max-w-[1720px] 2xl:max-w-[1860px]">
           <div className="admin-header mb-6 rounded-3xl border border-white/60 bg-gradient-to-r from-[#2e79e3] to-[#1d5fb8] px-6 py-5 text-center shadow-[0_18px_40px_rgba(39,60,46,0.12)] sm:px-8">
             <div>
