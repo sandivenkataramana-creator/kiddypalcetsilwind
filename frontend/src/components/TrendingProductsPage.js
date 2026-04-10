@@ -200,9 +200,9 @@ const TrendingProductsPage = () => {
                       <div className="mt-2.5 w-full h-[44px] flex items-center justify-center">
                         {cartQuantities[product.id] ? (
                           <div className="w-full flex items-center justify-between gap-1">
-                            <div className="w-[45%] flex items-center justify-between gap-1 rounded-full border border-[#6718c2] px-2 py-1 hover:bg-slate-100 transition">
+                            <div className="w-[45%] flex items-center justify-between gap-1 rounded-full border border-[#2e79e3] px-2 py-1 hover:bg-slate-100 transition">
                               <button
-                                className="text-sm font-bold text-[#6718c2] transition leading-none"
+                                className="text-sm font-bold text-[#2e79e3] transition leading-none"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (cartQuantities[product.id] <= 1) {
@@ -214,11 +214,11 @@ const TrendingProductsPage = () => {
                               >
                                 –
                               </button>
-                              <span className="text-center text-xs font-bold text-[#6718c2] min-w-[25px]">
+                              <span className="text-center text-xs font-bold text-[#2e79e3] min-w-[25px]">
                                 {cartQuantities[product.id]}
                               </span>
                               <button
-                                className="text-sm font-bold text-[#6718c2] transition disabled:text-[#ccc] disabled:cursor-not-allowed leading-none"
+                                className="text-sm font-bold text-[#2e79e3] transition disabled:text-[#ccc] disabled:cursor-not-allowed leading-none"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (cartQuantities[product.id] < product.stock_quantity) {
@@ -237,7 +237,7 @@ const TrendingProductsPage = () => {
                             className={`w-full h-full rounded-full border-2 px-3 py-2 text-xs font-bold transition sm:text-sm flex items-center justify-center ${
                               product.stock_quantity <= 0
                                 ? 'cursor-not-allowed border-[#ccc] bg-[#ccc] text-white'
-                                : 'border-[#6718c2] bg-white text-[#6718c2] hover:bg-[#6718c2] hover:text-white hover:shadow-[0_6px_16px_rgba(103,24,194,0.35)]'
+                                : 'border-[#2e79e3] bg-white text-[#2e79e3] hover:bg-[#2e79e3] hover:text-white hover:shadow-[0_6px_16px_rgba(46,121,227,0.35)]'
                             }`}
                             onClick={(e) => {
                               e.stopPropagation();

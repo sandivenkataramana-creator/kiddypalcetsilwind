@@ -6,11 +6,11 @@ import Footer from './Footer';
 import { API_BASE_URL } from "./config";
 
 const ProductsPage = () => {
-  
+
   const location = useLocation();
   const navigate = useNavigate();
   const { addToCart, cartItems, updateQuantity, removeFromCart } = useCart();
- 
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
@@ -65,68 +65,68 @@ const ProductsPage = () => {
   const brand = searchParams.get('brand') || '';
   const price = searchParams.get('price') || '';
   const isNewArrivalsPage = searchParams.get("new") === "true";
-  const discount = searchParams.get("discount") || ""; 
+  const discount = searchParams.get("discount") || "";
   const hasTag = searchParams.get("hasTag") === "true";
 
 
-useEffect(() => {
-  fetchProducts();
+  useEffect(() => {
+    fetchProducts();
 
-  if (location.state?.selectedProductId) {
-    const productId = location.state.selectedProductId;
-    setHighlightedProduct(productId);
+    if (location.state?.selectedProductId) {
+      const productId = location.state.selectedProductId;
+      setHighlightedProduct(productId);
 
-    setTimeout(() => {
-      const element = productRefs.current[productId];
-      if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 0);
+      setTimeout(() => {
+        const element = productRefs.current[productId];
+        if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 0);
 
-    setTimeout(() => setHighlightedProduct(null), 2500);
-  }
-}, [location.search, location.pathname, subcategory, categoryId]);
+      setTimeout(() => setHighlightedProduct(null), 2500);
+    }
+  }, [location.search, location.pathname, subcategory, categoryId]);
 
-// Sync cart quantities whenever cartItems changes
-useEffect(() => {
-  if (cartItems && Array.isArray(cartItems)) {
-    const newQuantities = {};
-    cartItems.forEach(item => {
-      newQuantities[item.id] = item.quantity;
-    });
-    setCartQuantities(newQuantities);
-  }
-}, [cartItems]);
+  // Sync cart quantities whenever cartItems changes
+  useEffect(() => {
+    if (cartItems && Array.isArray(cartItems)) {
+      const newQuantities = {};
+      cartItems.forEach(item => {
+        newQuantities[item.id] = item.quantity;
+      });
+      setCartQuantities(newQuantities);
+    }
+  }, [cartItems]);
 
-useEffect(() => {
-  if (!isMobileFiltersOpen) return undefined;
+  useEffect(() => {
+    if (!isMobileFiltersOpen) return undefined;
 
-  const originalOverflow = document.body.style.overflow;
-  document.body.style.overflow = 'hidden';
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
 
-  return () => {
-    document.body.style.overflow = originalOverflow;
-  };
-}, [isMobileFiltersOpen]);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isMobileFiltersOpen]);
 
-useEffect(() => {
-  if (!isMobileFiltersOpen) return undefined;
+  useEffect(() => {
+    if (!isMobileFiltersOpen) return undefined;
 
-  const updateDrawerTop = () => {
-    const header = document.querySelector('header');
-    const headerHeight = header ? Math.round(header.getBoundingClientRect().height) : 0;
-    setMobileFilterTop(headerHeight);
-  };
+    const updateDrawerTop = () => {
+      const header = document.querySelector('header');
+      const headerHeight = header ? Math.round(header.getBoundingClientRect().height) : 0;
+      setMobileFilterTop(headerHeight);
+    };
 
-  updateDrawerTop();
-  window.addEventListener('resize', updateDrawerTop);
+    updateDrawerTop();
+    window.addEventListener('resize', updateDrawerTop);
 
-  return () => {
-    window.removeEventListener('resize', updateDrawerTop);
-  };
-}, [isMobileFiltersOpen]);
+    return () => {
+      window.removeEventListener('resize', updateDrawerTop);
+    };
+  }, [isMobileFiltersOpen]);
 
 
   // useEffect(() => {
-    
+
   //   fetchProducts();
 
   //   if (location.state?.selectedProductId) {
@@ -142,262 +142,262 @@ useEffect(() => {
   //   }
   // }, [location.search, location.pathname, subcategory, categoryId]);
 
-//   useEffect(() => {
-//   const loadProducts = async () => {
-//     if (isCharactersPage) {
-//       try {
-//         const res = await fetch(`${API_BASE_URL}/api/products?hasTag=true`);
-//         const data = await res.json();
-//         setProducts(data.products || []);
-//       } catch (err) {
-//         console.error("Error loading Characters & Themes:", err);
-//         setMessage("Error loading Characters & Themes");
-//       } finally {
-//         setLoading(false);
-//       }
-//       return;
-//     }
+  //   useEffect(() => {
+  //   const loadProducts = async () => {
+  //     if (isCharactersPage) {
+  //       try {
+  //         const res = await fetch(`${API_BASE_URL}/api/products?hasTag=true`);
+  //         const data = await res.json();
+  //         setProducts(data.products || []);
+  //       } catch (err) {
+  //         console.error("Error loading Characters & Themes:", err);
+  //         setMessage("Error loading Characters & Themes");
+  //       } finally {
+  //         setLoading(false);
+  //       }
+  //       return;
+  //     }
 
-//     await fetchProducts();
-//   };
+  //     await fetchProducts();
+  //   };
 
-//   loadProducts();
+  //   loadProducts();
 
-//   if (location.state?.selectedProductId) {
-//     const productId = location.state.selectedProductId;
-//     setHighlightedProduct(productId);
+  //   if (location.state?.selectedProductId) {
+  //     const productId = location.state.selectedProductId;
+  //     setHighlightedProduct(productId);
 
-//     setTimeout(() => {
-//       const element = productRefs.current[productId];
-//       if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-//     }, 0);
+  //     setTimeout(() => {
+  //       const element = productRefs.current[productId];
+  //       if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  //     }, 0);
 
-//     setTimeout(() => setHighlightedProduct(null), 2500);
-//   }
-// }, [location.search, location.pathname, subcategory, categoryId, isCharactersPage]);
-
-
-//   const fetchProducts = async () => {
-//     try {
-//                         // 🎭 Characters & Themes (ALL tagged products)
-//                   // if (searchParams.get("hasTag") === "true") {
-//                   //   const res = await fetch(`${API_BASE_URL}/api/products?hasTag=true`);
-//                   //   const data = await res.json();
-//                   //   setProducts(data.products || []);
-//                   //   return;
-//                   // }
-
-//                   // if (searchParams.get("hasTag") === "true") {
-//                   //   const res = await fetch(`${API_BASE_URL}/api/products?hasTag=true`);
-//                   //   const data = await res.json();
-//                   //   setProducts(data.products || []);
-//                   //   return;
-//                   // }
+  //     setTimeout(() => setHighlightedProduct(null), 2500);
+  //   }
+  // }, [location.search, location.pathname, subcategory, categoryId, isCharactersPage]);
 
 
+  //   const fetchProducts = async () => {
+  //     try {
+  //                         // 🎭 Characters & Themes (ALL tagged products)
+  //                   // if (searchParams.get("hasTag") === "true") {
+  //                   //   const res = await fetch(`${API_BASE_URL}/api/products?hasTag=true`);
+  //                   //   const data = await res.json();
+  //                   //   setProducts(data.products || []);
+  //                   //   return;
+  //                   // }
 
-    
+  //                   // if (searchParams.get("hasTag") === "true") {
+  //                   //   const res = await fetch(`${API_BASE_URL}/api/products?hasTag=true`);
+  //                   //   const data = await res.json();
+  //                   //   setProducts(data.products || []);
+  //                   //   return;
+  //                   // }
 
 
 
-//       if (searchParams.get("customized") === "true") {
-//         const res = await fetch(`${API_BASE_URL}/api/products/customized`);
-//         const data = await res.json();
-//         setProducts(data.products || []);
-//         return;
-//       }
-
-//       // ⭐ If Special Offers page
-//       if (searchParams.get("offers") === "true") {
-//         const res = await fetch(`${API_BASE_URL}/api/products/offers`);
-//         const data = await res.json();
-//         setProducts(data.products || []);
-//         return;
-//       }
-
-//       // ⭐ If new=true, fetch NEW ARRIVALS
-//       if (isNewArrivalsPage) {
-//       const res = await fetch(`${API_BASE_URL}/api/new-arrivals?time=` + Date.now());
-//       const data = await res.json();
-//       setProducts(data.products || []);
-//       return;
-//       }
 
 
-//       let url = `${API_BASE_URL}/api/products`;
-//       if(discount === "high"){
-//         url = `${API_BASE_URL}/api/discount/high`;
-//       }  else if(tagId){
-//         url = `${API_BASE_URL}/api/products/by-tag/${tagId}`;
-//       } else if (subcategory) {
-//         url = `${API_BASE_URL}/api/products/by-subcategory/${encodeURIComponent(subcategory)}`;
-//       } else if(categoryId){
-//         url = `${API_BASE_URL}/api/products/by-category/${categoryId}`;
-//       }
-
-//       const response = await fetch(url);
-//       const data = await response.json();
-
-//       // if (data.success) {
-//       //   setProducts(data.products);
-//       // } else {
-//       //   setMessage('No products found.');
-//       // }
-//       if (data.success === true || data.success === "true") {
-//   setProducts(data.products);
-// } else {
-//   setMessage("No products found.");
-// }
-
-//     } catch (error) {
-//       console.error('Error fetching products:', error);
-//       setMessage('Error loading products');
-//     } finally {
-//       setLoading(false);
-//     }
-//   }
-
-// const fetchProducts = async () => {
-//   try {
-//     // ✅ 1. If Home page character clicked → specific tag
-//     if (tagId) {
-//       const res = await fetch(`${API_BASE_URL}/api/products/by-tag/${tagId}`);
-//       const data = await res.json();
-//       setProducts(data.products || []);
-//       return;
-//     }
-
-//     // ✅ 2. If Header "Characters & Themes" → all tagged products
-//     if (hasTag) {
-//       const res = await fetch(`${API_BASE_URL}/api/products?hasTag=true`);
-//       const data = await res.json();
-//       setProducts(data.products || []);
-//       return;
-//     }
 
 
-const fetchProducts = async () => {
-  try {
-    setLoading(true);
-    setMessage(""); // ✅ clear old "No products" message
+  //       if (searchParams.get("customized") === "true") {
+  //         const res = await fetch(`${API_BASE_URL}/api/products/customized`);
+  //         const data = await res.json();
+  //         setProducts(data.products || []);
+  //         return;
+  //       }
 
-    // Cache buster to ensure fresh data
-    const cacheBuster = `?t=${Date.now()}`;
+  //       // ⭐ If Special Offers page
+  //       if (searchParams.get("offers") === "true") {
+  //         const res = await fetch(`${API_BASE_URL}/api/products/offers`);
+  //         const data = await res.json();
+  //         setProducts(data.products || []);
+  //         return;
+  //       }
 
-    // 🥇 PRIORITY 1: Specific tag (Marvel, DC, etc.)
-    if (tagId) {
-      const res = await fetch(`${API_BASE_URL}/api/products/by-tag/${tagId}${cacheBuster}`);
+  //       // ⭐ If new=true, fetch NEW ARRIVALS
+  //       if (isNewArrivalsPage) {
+  //       const res = await fetch(`${API_BASE_URL}/api/new-arrivals?time=` + Date.now());
+  //       const data = await res.json();
+  //       setProducts(data.products || []);
+  //       return;
+  //       }
+
+
+  //       let url = `${API_BASE_URL}/api/products`;
+  //       if(discount === "high"){
+  //         url = `${API_BASE_URL}/api/discount/high`;
+  //       }  else if(tagId){
+  //         url = `${API_BASE_URL}/api/products/by-tag/${tagId}`;
+  //       } else if (subcategory) {
+  //         url = `${API_BASE_URL}/api/products/by-subcategory/${encodeURIComponent(subcategory)}`;
+  //       } else if(categoryId){
+  //         url = `${API_BASE_URL}/api/products/by-category/${categoryId}`;
+  //       }
+
+  //       const response = await fetch(url);
+  //       const data = await response.json();
+
+  //       // if (data.success) {
+  //       //   setProducts(data.products);
+  //       // } else {
+  //       //   setMessage('No products found.');
+  //       // }
+  //       if (data.success === true || data.success === "true") {
+  //   setProducts(data.products);
+  // } else {
+  //   setMessage("No products found.");
+  // }
+
+  //     } catch (error) {
+  //       console.error('Error fetching products:', error);
+  //       setMessage('Error loading products');
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+
+  // const fetchProducts = async () => {
+  //   try {
+  //     // ✅ 1. If Home page character clicked → specific tag
+  //     if (tagId) {
+  //       const res = await fetch(`${API_BASE_URL}/api/products/by-tag/${tagId}`);
+  //       const data = await res.json();
+  //       setProducts(data.products || []);
+  //       return;
+  //     }
+
+  //     // ✅ 2. If Header "Characters & Themes" → all tagged products
+  //     if (hasTag) {
+  //       const res = await fetch(`${API_BASE_URL}/api/products?hasTag=true`);
+  //       const data = await res.json();
+  //       setProducts(data.products || []);
+  //       return;
+  //     }
+
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      setMessage(""); // ✅ clear old "No products" message
+
+      // Cache buster to ensure fresh data
+      const cacheBuster = `?t=${Date.now()}`;
+
+      // 🥇 PRIORITY 1: Specific tag (Marvel, DC, etc.)
+      if (tagId) {
+        const res = await fetch(`${API_BASE_URL}/api/products/by-tag/${tagId}${cacheBuster}`);
+        const data = await res.json();
+        setProducts(data.products || []);
+        return;
+      }
+
+      // 🥈 PRIORITY 2: All tagged products (Characters & Themes page)
+      if (hasTag) {
+        const res = await fetch(`${API_BASE_URL}/api/products/with-tags${cacheBuster}`);
+        const data = await res.json();
+        setProducts(data.products || []);
+        return;
+      }
+
+      // ⭐ Customized
+      if (searchParams.get("customized") === "true") {
+        const res = await fetch(`${API_BASE_URL}/api/products/customized${cacheBuster}`);
+        const data = await res.json();
+        setProducts(data.products || []);
+        return;
+      }
+
+      // 🔥 Offers
+      if (searchParams.get("offers") === "true") {
+        const res = await fetch(`${API_BASE_URL}/api/products/offers${cacheBuster}`);
+        const data = await res.json();
+        setProducts(data.products || []);
+        return;
+      }
+
+      // 🆕 New Arrivals
+      if (isNewArrivalsPage) {
+        const res = await fetch(`${API_BASE_URL}/api/new-arrivals?time=${Date.now()}`);
+        const data = await res.json();
+        setProducts(data.products || []);
+        return;
+      }
+
+      // 📦 Default / category / subcategory / discount
+      let url = `${API_BASE_URL}/api/products${cacheBuster}`;
+
+      if (discount === "high") {
+        url = `${API_BASE_URL}/api/discount/high${cacheBuster}`;
+      } else if (subcategory) {
+        url = `${API_BASE_URL}/api/products/by-subcategory/${encodeURIComponent(subcategory)}${cacheBuster}`;
+      } else if (categoryId) {
+        url = `${API_BASE_URL}/api/products/by-category/${categoryId}${cacheBuster}`;
+      }
+
+      const res = await fetch(url);
       const data = await res.json();
       setProducts(data.products || []);
-      return;
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      setMessage("Error loading products");
+    } finally {
+      setLoading(false);
     }
-
-    // 🥈 PRIORITY 2: All tagged products (Characters & Themes page)
-    if (hasTag) {
-      const res = await fetch(`${API_BASE_URL}/api/products/with-tags${cacheBuster}`);
-      const data = await res.json();
-      setProducts(data.products || []);
-      return;
-    }
-
-    // ⭐ Customized
-    if (searchParams.get("customized") === "true") {
-      const res = await fetch(`${API_BASE_URL}/api/products/customized${cacheBuster}`);
-      const data = await res.json();
-      setProducts(data.products || []);
-      return;
-    }
-
-    // 🔥 Offers
-    if (searchParams.get("offers") === "true") {
-      const res = await fetch(`${API_BASE_URL}/api/products/offers${cacheBuster}`);
-      const data = await res.json();
-      setProducts(data.products || []);
-      return;
-    }
-
-    // 🆕 New Arrivals
-    if (isNewArrivalsPage) {
-      const res = await fetch(`${API_BASE_URL}/api/new-arrivals?time=${Date.now()}`);
-      const data = await res.json();
-      setProducts(data.products || []);
-      return;
-    }
-
-    // 📦 Default / category / subcategory / discount
-    let url = `${API_BASE_URL}/api/products${cacheBuster}`;
-
-    if (discount === "high") {
-      url = `${API_BASE_URL}/api/discount/high${cacheBuster}`;
-    } else if (subcategory) {
-      url = `${API_BASE_URL}/api/products/by-subcategory/${encodeURIComponent(subcategory)}${cacheBuster}`;
-    } else if (categoryId) {
-      url = `${API_BASE_URL}/api/products/by-category/${categoryId}${cacheBuster}`;
-    }
-
-    const res = await fetch(url);
-    const data = await res.json();
-    setProducts(data.products || []);
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    setMessage("Error loading products");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
 
 
-//     // ⭐ Customized products
-//     if (searchParams.get("customized") === "true") {
-//       const res = await fetch(`${API_BASE_URL}/api/products/customized`);
-//       const data = await res.json();
-//       setProducts(data.products || []);
-//       return;
-//     }
+  //     // ⭐ Customized products
+  //     if (searchParams.get("customized") === "true") {
+  //       const res = await fetch(`${API_BASE_URL}/api/products/customized`);
+  //       const data = await res.json();
+  //       setProducts(data.products || []);
+  //       return;
+  //     }
 
-//     // ⭐ Special offers
-//     if (searchParams.get("offers") === "true") {
-//       const res = await fetch(`${API_BASE_URL}/api/products/offers`);
-//       const data = await res.json();
-//       setProducts(data.products || []);
-//       return;
-//     }
+  //     // ⭐ Special offers
+  //     if (searchParams.get("offers") === "true") {
+  //       const res = await fetch(`${API_BASE_URL}/api/products/offers`);
+  //       const data = await res.json();
+  //       setProducts(data.products || []);
+  //       return;
+  //     }
 
-//     // ⭐ New arrivals
-//     if (isNewArrivalsPage) {
-//       const res = await fetch(`${API_BASE_URL}/api/new-arrivals?time=` + Date.now());
-//       const data = await res.json();
-//       setProducts(data.products || []);
-//       return;
-//     }
+  //     // ⭐ New arrivals
+  //     if (isNewArrivalsPage) {
+  //       const res = await fetch(`${API_BASE_URL}/api/new-arrivals?time=` + Date.now());
+  //       const data = await res.json();
+  //       setProducts(data.products || []);
+  //       return;
+  //     }
 
-//     // 🔹 Default / category / subcategory / discount
-//     let url = `${API_BASE_URL}/api/products`;
+  //     // 🔹 Default / category / subcategory / discount
+  //     let url = `${API_BASE_URL}/api/products`;
 
-//     if (discount === "high") {
-//       url = `${API_BASE_URL}/api/discount/high`;
-//     } else if (subcategory) {
-//       url = `${API_BASE_URL}/api/products/by-subcategory/${encodeURIComponent(subcategory)}`;
-//     } else if (categoryId) {
-//       url = `${API_BASE_URL}/api/products/by-category/${categoryId}`;
-//     }
+  //     if (discount === "high") {
+  //       url = `${API_BASE_URL}/api/discount/high`;
+  //     } else if (subcategory) {
+  //       url = `${API_BASE_URL}/api/products/by-subcategory/${encodeURIComponent(subcategory)}`;
+  //     } else if (categoryId) {
+  //       url = `${API_BASE_URL}/api/products/by-category/${categoryId}`;
+  //     }
 
-//     const response = await fetch(url);
-//     const data = await response.json();
+  //     const response = await fetch(url);
+  //     const data = await response.json();
 
-//     if (data.success === true || data.success === "true") {
-//       setProducts(data.products || []);
-//     } else {
-//       setMessage("No products found.");
-//     }
-//   } catch (error) {
-//     console.error("Error fetching products:", error);
-//     setMessage("Error loading products");
-//   } finally {
-//     setLoading(false);
-//   }
-// };
+  //     if (data.success === true || data.success === "true") {
+  //       setProducts(data.products || []);
+  //     } else {
+  //       setMessage("No products found.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching products:", error);
+  //     setMessage("Error loading products");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
 
 
@@ -499,125 +499,125 @@ const fetchProducts = async () => {
   const selectedBrandLocal =
     filters.brand !== 'all' ? filters.brand.toLowerCase() : '';
 
-// const filteredProducts = products.filter((p) => {
-//   let ok = true;
+  // const filteredProducts = products.filter((p) => {
+  //   let ok = true;
 
-//   // 🎭Characters & Themes filter
-//   // if (hasTag) {
-//   //   ok =
-//   //     ok &&
-//   //     (
-//   //       p.tag_id ||
-//   //       (Array.isArray(p.tags) && p.tags.length > 0)
-//   //     );
-//   // }
+  //   // 🎭Characters & Themes filter
+  //   // if (hasTag) {
+  //   //   ok =
+  //   //     ok &&
+  //   //     (
+  //   //       p.tag_id ||
+  //   //       (Array.isArray(p.tags) && p.tags.length > 0)
+  //   //     );
+  //   // }
 
-//   // 🔍 Search filter
-//   if (searchTerm) {
-//     const hay = `${p.name || ''} ${p.description || ''}`.toLowerCase();
-//     ok = ok && hay.includes(searchTerm);
-//   }
+  //   // 🔍 Search filter
+  //   if (searchTerm) {
+  //     const hay = `${p.name || ''} ${p.description || ''}`.toLowerCase();
+  //     ok = ok && hay.includes(searchTerm);
+  //   }
 
-//   // 🎂 Age filter (URL)
-//   const prodRange = parseAgeToMonths(p.age_range || "");
-//   if (selectedAgeRangeURL && prodRange) {
-//     ok = ok && rangesOverlap(prodRange, selectedAgeRangeURL);
-//   }
+  //   // 🎂 Age filter (URL)
+  //   const prodRange = parseAgeToMonths(p.age_range || "");
+  //   if (selectedAgeRangeURL && prodRange) {
+  //     ok = ok && rangesOverlap(prodRange, selectedAgeRangeURL);
+  //   }
 
-//   // 🎂 Age filter (sidebar)
-//   if (ok && selectedAgeRangeLocal) {
-//     const prodRangeLocal = parseAgeToMonths(p.age_range || '');
-//     ok = ok && rangesOverlap(prodRangeLocal, selectedAgeRangeLocal);
-//   }
+  //   // 🎂 Age filter (sidebar)
+  //   if (ok && selectedAgeRangeLocal) {
+  //     const prodRangeLocal = parseAgeToMonths(p.age_range || '');
+  //     ok = ok && rangesOverlap(prodRangeLocal, selectedAgeRangeLocal);
+  //   }
 
-//   // 🏷 Brand filter (URL)
-//   if (ok && selectedBrandURL) {
-//     ok = ok && (p.brand_name || "").toLowerCase() === selectedBrandURL;
-//   }
+  //   // 🏷 Brand filter (URL)
+  //   if (ok && selectedBrandURL) {
+  //     ok = ok && (p.brand_name || "").toLowerCase() === selectedBrandURL;
+  //   }
 
-//   // 🏷 Brand filter (sidebar)
-//   if (ok && selectedBrandLocal) {
-//     ok = ok && p.brand_name?.toLowerCase() === selectedBrandLocal;
-//   }
+  //   // 🏷 Brand filter (sidebar)
+  //   if (ok && selectedBrandLocal) {
+  //     ok = ok && p.brand_name?.toLowerCase() === selectedBrandLocal;
+  //   }
 
-//   // 💰 Price filter (URL)
-//   if (ok && selectedPriceRangeURL) {
-//     const [minP, maxP] = selectedPriceRangeURL;
-//     const priceNum = Number(p.price) || 0;
-//     ok = ok && priceNum >= minP && priceNum <= (maxP || Number.MAX_SAFE_INTEGER);
-//   }
+  //   // 💰 Price filter (URL)
+  //   if (ok && selectedPriceRangeURL) {
+  //     const [minP, maxP] = selectedPriceRangeURL;
+  //     const priceNum = Number(p.price) || 0;
+  //     ok = ok && priceNum >= minP && priceNum <= (maxP || Number.MAX_SAFE_INTEGER);
+  //   }
 
-//   // 💰 Price filter (sidebar)
-//   if (ok && selectedPriceRangeLocal) {
-//     const [minP, maxP] = selectedPriceRangeLocal;
-//     const priceNum = Number(p.price) || 0;
-//     ok = ok && priceNum >= minP && priceNum <= (maxP || Number.MAX_SAFE_INTEGER);
-//   }
+  //   // 💰 Price filter (sidebar)
+  //   if (ok && selectedPriceRangeLocal) {
+  //     const [minP, maxP] = selectedPriceRangeLocal;
+  //     const priceNum = Number(p.price) || 0;
+  //     ok = ok && priceNum >= minP && priceNum <= (maxP || Number.MAX_SAFE_INTEGER);
+  //   }
 
-//   return ok;
-// });
+  //   return ok;
+  // });
 
-const filteredProducts = products.filter((p) => {
-  // ✅ VERY IMPORTANT:
-  // If coming from Characters/Tag page, DO NOT apply brand/price/age filters
-  if (tagId) return true;
+  const filteredProducts = products.filter((p) => {
+    // ✅ VERY IMPORTANT:
+    // If coming from Characters/Tag page, DO NOT apply brand/price/age filters
+    if (tagId) return true;
 
-  let ok = true;
+    let ok = true;
 
-  // 🔍 Search filter
-  if (searchTerm) {
-    const hay = `${p.name || ''} ${p.description || ''}`.toLowerCase();
-    ok = ok && hay.includes(searchTerm);
-  }
+    // 🔍 Search filter
+    if (searchTerm) {
+      const hay = `${p.name || ''} ${p.description || ''}`.toLowerCase();
+      ok = ok && hay.includes(searchTerm);
+    }
 
-  // 🎂 Age filter (URL)
-  const prodRange = parseAgeToMonths(p.age_range || "");
-  if (selectedAgeRangeURL && prodRange) {
-    ok = ok && rangesOverlap(prodRange, selectedAgeRangeURL);
-  }
+    // 🎂 Age filter (URL)
+    const prodRange = parseAgeToMonths(p.age_range || "");
+    if (selectedAgeRangeURL && prodRange) {
+      ok = ok && rangesOverlap(prodRange, selectedAgeRangeURL);
+    }
 
-  // 🎂 Age filter (sidebar)
-  if (ok && selectedAgeRangeLocal) {
-    const prodRangeLocal = parseAgeToMonths(p.age_range || "");
-    ok = ok && rangesOverlap(prodRangeLocal, selectedAgeRangeLocal);
-  }
+    // 🎂 Age filter (sidebar)
+    if (ok && selectedAgeRangeLocal) {
+      const prodRangeLocal = parseAgeToMonths(p.age_range || "");
+      ok = ok && rangesOverlap(prodRangeLocal, selectedAgeRangeLocal);
+    }
 
-  // 🏷 Brand filter (URL)
-  if (ok && selectedBrandURL) {
-    ok = ok && (p.brand_name || "").toLowerCase() === selectedBrandURL;
-  }
+    // 🏷 Brand filter (URL)
+    if (ok && selectedBrandURL) {
+      ok = ok && (p.brand_name || "").toLowerCase() === selectedBrandURL;
+    }
 
-  // 🏷 Brand filter (sidebar)
-  if (ok && selectedBrandLocal) {
-    ok = ok && p.brand_name?.toLowerCase() === selectedBrandLocal;
-  }
+    // 🏷 Brand filter (sidebar)
+    if (ok && selectedBrandLocal) {
+      ok = ok && p.brand_name?.toLowerCase() === selectedBrandLocal;
+    }
 
-  // � Price filter (URL)
-  if (ok && selectedPriceRangeURL) {
-    const [minP, maxP] = selectedPriceRangeURL;
-    const priceNum = Number(p.price) || 0;
-    ok = ok && priceNum >= minP && priceNum <= (maxP || Number.MAX_SAFE_INTEGER);
-  }
+    // � Price filter (URL)
+    if (ok && selectedPriceRangeURL) {
+      const [minP, maxP] = selectedPriceRangeURL;
+      const priceNum = Number(p.price) || 0;
+      ok = ok && priceNum >= minP && priceNum <= (maxP || Number.MAX_SAFE_INTEGER);
+    }
 
-  // 💰 Price filter (sidebar)
-  if (ok && selectedPriceRangeLocal) {
-    const [minP, maxP] = selectedPriceRangeLocal;
-    const priceNum = Number(p.price) || 0;
-    ok = ok && priceNum >= minP && priceNum <= (maxP || Number.MAX_SAFE_INTEGER);
-  }
+    // 💰 Price filter (sidebar)
+    if (ok && selectedPriceRangeLocal) {
+      const [minP, maxP] = selectedPriceRangeLocal;
+      const priceNum = Number(p.price) || 0;
+      ok = ok && priceNum >= minP && priceNum <= (maxP || Number.MAX_SAFE_INTEGER);
+    }
 
-  return ok;
-});
+    return ok;
+  });
 
 
-useEffect(() => {
-  if (products.length > 0) {
-    console.log("Sample product:", products[0]);
-  }
-}, [products]);
+  useEffect(() => {
+    if (products.length > 0) {
+      console.log("Sample product:", products[0]);
+    }
+  }, [products]);
 
-    
-  
+
+
   // 🔹 Apply sorting to filtered products
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     if (sortOrder === 'lowToHigh') return a.price - b.price;
@@ -628,18 +628,18 @@ useEffect(() => {
   const pageTitle = discount === 'high'
     ? 'Special Offers'
     : searchParams.get('customized') === 'true'
-    ? 'Customized Products'
-    : isNewArrivalsPage
-    ? 'Fresh In Store'
-    : hasTag || tagId
-    ? 'Characters & Themes'
-    : age
-    ? `Products for ${age}`
-    : subcategory
-    ? subcategory.toUpperCase()
-    : category
-    ? 'Category Products'
-    : 'All Products';
+      ? 'Customized Products'
+      : isNewArrivalsPage
+        ? 'Fresh In Store'
+        : hasTag || tagId
+          ? 'Characters & Themes'
+          : age
+            ? `Products for ${age}`
+            : subcategory
+              ? subcategory.toUpperCase()
+              : category
+                ? 'Category Products'
+                : 'All Products';
 
   const clearAllFilters = () => {
     setFilters({ priceRange: 'all', ageRange: 'all', brand: 'all' });
@@ -758,92 +758,91 @@ useEffect(() => {
   return (
     <div className="flex min-h-screen flex-col bg-[#f8f5ee] text-[#1b3137]">
       <Header />
-      <main className="mx-auto w-full max-w-[1440px] xl:max-w-[1720px] 2xl:max-w-[1860px] flex-1 px-3 py-4 md:px-5 md:py-6">
+      <main className="mx-auto w-full max-w-[1440px] flex-1 px-3 py-4 md:px-5 md:py-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-        {/* Sidebar Filters */}
-        <aside className="hidden h-fit rounded-2xl border border-[#d8e5e7] bg-[#eaf2f3 ] p-4 shadow-[0_8px_24px_rgba(27,49,55,0.08)] lg:sticky lg:top-36 lg:block lg:w-[270px] 2xl:w-[300px]">
-          <div>{renderFilters(false)}</div>
-        </aside>
+          {/* Sidebar Filters */}
+          <aside className="hidden h-fit rounded-2xl border border-[#d8e5e7] bg-[#eaf2f3 ] p-4 shadow-[0_8px_24px_rgba(27,49,55,0.08)] lg:sticky lg:top-36 lg:block lg:w-[270px]">
+            <div>{renderFilters(false)}</div>
+          </aside>
 
-        {/* Products Section */}
-        <section className="min-h-[600px] flex-1">
-          <div className="mb-4 rounded-2xl border border-[#d8e5e7] bg-white px-4 py-4 shadow-[0_8px_24px_rgba(27,49,55,0.06)] sm:px-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="text-2xl font-extrabold tracking-tight text-[#1b3137] sm:text-3xl">
-                {pageTitle}
-              </h2>
-            {/* 🔹 Sort By Dropdown */}
-            <div className="flex items-center gap-2 text-base font-semibold text-[#1b3137] sm:text-lg">
-              <button
-                type="button"
-                onClick={() => setIsMobileFiltersOpen(true)}
-                className="inline-flex rounded-xl border border-[#0f6a73] bg-white px-3 py-2 text-sm font-semibold text-[#0f6a73] transition hover:bg-[#0f6a73] hover:text-white lg:hidden"
-              >
-                Filters
-              </button>
-              <label>Sort by:</label>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-                className="rounded-xl border border-[#bdd0d3] bg-[#f8f5ee] px-3 py-2 text-sm text-[#1b3137] transition focus:outline-none focus:ring-4 focus:ring-[#0f6a73]/20"
-              >
-                <option value="none">Default</option>
-                <option value="lowToHigh">Price: Low to High</option>
-                <option value="highToLow">Price: High to Low</option>
-              </select>
-            </div>
-          </div>
+          {/* Products Section */}
+          <section className="min-h-[600px] flex-1">
+            <div className="mb-4 rounded-2xl border border-[#d8e5e7] bg-white px-4 py-4 shadow-[0_8px_24px_rgba(27,49,55,0.06)] sm:px-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-2xl font-extrabold tracking-tight text-[#1b3137] sm:text-3xl">
+                  {pageTitle}
+                </h2>
+                {/* 🔹 Sort By Dropdown */}
+                <div className="flex items-center gap-2 text-base font-semibold text-[#1b3137] sm:text-lg">
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileFiltersOpen(true)}
+                    className="inline-flex rounded-xl border border-[#0f6a73] bg-white px-3 py-2 text-sm font-semibold text-[#0f6a73] transition hover:bg-[#0f6a73] hover:text-white lg:hidden"
+                  >
+                    Filters
+                  </button>
+                  <label>Sort by:</label>
+                  <select
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                    className="rounded-xl border border-[#bdd0d3] bg-[#f8f5ee] px-3 py-2 text-sm text-[#1b3137] transition focus:outline-none focus:ring-4 focus:ring-[#0f6a73]/20"
+                  >
+                    <option value="none">Default</option>
+                    <option value="lowToHigh">Price: Low to High</option>
+                    <option value="highToLow">Price: High to Low</option>
+                  </select>
+                </div>
+              </div>
 
-          {activeFilterChips.length > 0 && (
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              {activeFilterChips.map((chip) => (
-                <button
-                  key={chip.key}
-                  type="button"
-                  onClick={() => handleFilterChange(chip.key, 'all')}
-                  className="inline-flex items-center gap-2 rounded-full border border-[#bdd0d3] bg-[#f7fafb] px-3 py-1.5 text-xs font-semibold text-[#1b3137] transition hover:border-[#0f6a73] hover:text-[#0f6a73]"
-                  title="Remove filter"
-                >
-                  <span>{chip.label}</span>
-                  <span className="text-sm leading-none">×</span>
-                </button>
-              ))}
+              {activeFilterChips.length > 0 && (
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {activeFilterChips.map((chip) => (
+                    <button
+                      key={chip.key}
+                      type="button"
+                      onClick={() => handleFilterChange(chip.key, 'all')}
+                      className="inline-flex items-center gap-2 rounded-full border border-[#bdd0d3] bg-[#f7fafb] px-3 py-1.5 text-xs font-semibold text-[#1b3137] transition hover:border-[#0f6a73] hover:text-[#0f6a73]"
+                      title="Remove filter"
+                    >
+                      <span>{chip.label}</span>
+                      <span className="text-sm leading-none">×</span>
+                    </button>
+                  ))}
 
-              {activeFilterChips.length > 1 && (
-                <button
-                  type="button"
-                  onClick={clearAllFilters}
-                  className="inline-flex items-center rounded-full border border-[#f46f56] bg-[#fff0ec] px-3 py-1.5 text-xs font-semibold text-[#8b2d1a] transition hover:bg-[#ffe3db]"
-                >
-                  Clear All
-                </button>
+                  {activeFilterChips.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={clearAllFilters}
+                      className="inline-flex items-center rounded-full border border-[#f46f56] bg-[#fff0ec] px-3 py-1.5 text-xs font-semibold text-[#8b2d1a] transition hover:bg-[#ffe3db]"
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
               )}
             </div>
-          )}
-          </div>
 
-          {message && (
-            <div className="mb-4 rounded-xl border border-[#ffd1c8] bg-[#fff0ec] px-4 py-3 text-sm font-medium text-[#8b2d1a]">
-              {message}
-            </div>
-          )}
+            {message && (
+              <div className="mb-4 rounded-xl border border-[#ffd1c8] bg-[#fff0ec] px-4 py-3 text-sm font-medium text-[#8b2d1a]">
+                {message}
+              </div>
+            )}
 
-          {sortedProducts.length === 0 ? (
-            <div className="rounded-2xl bg-white px-4 py-12 text-center text-[#5f6f72] ring-1 ring-[#d8e5e7]">
-              <p>No products found.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 2xl:gap-5">
-              {sortedProducts.map((product) => (
-                <div
-                  key={product.id}
-                  ref={(el) => (productRefs.current[product.id] = el)}
-                  className={`group flex flex-col overflow-hidden rounded-2xl border bg-white shadow-[0_6px_20px_rgba(27,49,55,0.09)] transition hover:-translate-y-1 hover:shadow-[0_14px_28px_rgba(27,49,55,0.16)] min-h-[420px] ${
-                    highlightedProduct === product.id ? 'border-[#0f6a73] ring-2 ring-[#0f6a73]/35' : 'border-[#d8e5e7]'
-                  }`}
-                  onClick={() => handleProductClick(product)}
-                >
-  {/* <div className="product-image-container">
+            {sortedProducts.length === 0 ? (
+              <div className="rounded-2xl bg-white px-4 py-12 text-center text-[#5f6f72] ring-1 ring-[#d8e5e7]">
+                <p>No products found.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+                {sortedProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    ref={(el) => (productRefs.current[product.id] = el)}
+                    className={`group flex flex-col overflow-hidden rounded-2xl border bg-white shadow-[0_6px_20px_rgba(27,49,55,0.09)] transition hover:-translate-y-1 hover:shadow-[0_14px_28px_rgba(27,49,55,0.16)] min-h-[420px] ${highlightedProduct === product.id ? 'border-[#0f6a73] ring-2 ring-[#0f6a73]/35' : 'border-[#d8e5e7]'
+                      }`}
+                    onClick={() => handleProductClick(product)}
+                  >
+                    {/* <div className="product-image-container">
           {product.image_url ? (
             <img
   src={
@@ -864,170 +863,171 @@ useEffect(() => {
           )}
         </div> */}
 
-                <div className="relative m-2 flex h-[160px] items-center justify-center rounded-xl border border-[#e2ebec] bg-[#f7fafb] p-2 sm:h-[180px]">
+                    <div className="relative m-2 flex h-[160px] items-center justify-center rounded-xl border border-[#e2ebec] bg-[#f7fafb] p-2 sm:h-[180px]">
 
-  {/* 🔥 Discount badge from DB */}
-  {product.discount_percent > 0 && (
-    <div className="absolute right-2 top-2 z-[6] rounded-full bg-gradient-to-r from-[#2e79e3] to-[#245fb1] px-2 py-1 text-[11px] font-bold leading-none text-white shadow-[0_6px_16px_rgba(46,121,227,0.28)]">
-      {product.discount_percent}% OFF
-    </div>
-  )}
+                      {/* 🔥 Discount badge from DB */}
+                      {product.discount_percent > 0 && (
+                        <div className="absolute right-2 top-2 z-[6] rounded-full bg-gradient-to-r from-[#2e79e3] to-[#245fb1] px-2 py-1 text-[11px] font-bold leading-none text-white shadow-[0_6px_16px_rgba(46,121,227,0.28)]">
+                          {product.discount_percent}% OFF
+                        </div>
+                      )}
 
-  {/* Normalize image source: accept absolute URLs, data URIs, or server paths */}
-  {(() => {
-    const raw = product.image_url || product.image || product.imageUrl || '';
-    let src = '';
-    if (raw && typeof raw === 'string') {
-      const trimmed = raw.trim();
-      if (trimmed.startsWith('http') || trimmed.startsWith('data:')) {
-        src = trimmed;
-      } else if (trimmed.startsWith('/')) {
-        src = `${API_BASE_URL}${trimmed}`;
-      } else if (trimmed !== '') {
-        src = `${API_BASE_URL}/${trimmed}`;
-      }
-    }
+                      {/* Normalize image source: accept absolute URLs, data URIs, or server paths */}
+                      {(() => {
+                        const raw = product.image_url || product.image || product.imageUrl || '';
+                        let src = '';
+                        if (raw && typeof raw === 'string') {
+                          const trimmed = raw.trim();
+                          if (trimmed.startsWith('http') || trimmed.startsWith('data:')) {
+                            src = trimmed;
+                          } else if (trimmed.startsWith('/')) {
+                            src = `${API_BASE_URL}${trimmed}`;
+                          } else if (trimmed !== '') {
+                            src = `${API_BASE_URL}/${trimmed}`;
+                          }
+                        }
 
-    if (src) {
-      return (
-        <img
-          src={src}
-          alt={product.name}
-          loading="lazy"
-          className="h-full w-full rounded-lg object-contain"
-          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = 'none'; }}
-        />
-      );
-    }
+                        if (src) {
+                          return (
+                            <img
+                              src={src}
+                              alt={product.name}
+                              loading="lazy"
+                              className="h-full w-full rounded-lg object-contain"
+                              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.style.display = 'none'; }}
+                            />
+                          );
+                        }
 
-    return (
-      <div className="text-center text-3xl text-[#999]">
-        <span>📦</span>
-        <p className="mt-1 text-xs">No Image</p>
-      </div>
-    );
-  })()}
-</div>
-
-
-
-                  <div className="flex flex-1 flex-col p-3">
-                   <h3 className="line-clamp-2 min-h-[2.6rem] text-[0.98rem] font-semibold leading-5 text-[#213d43] sm:text-[1rem]">{product.name}</h3>
-                    <p className="hidden">{product.description}</p>
-                        <div className="mt-auto pt-2.5">
-                          <div className="flex items-end gap-1.5">
-
-  {product.mrp && product.price && Number(product.mrp) > Number(product.price) ? (
-    <>
-      {/* Final Price */}
-      <span className="text-[1.25rem] font-black tracking-tight text-[#1b3137]">
-        ₹{product.price}
-      </span>
-
-      {/* MRP Strike */}
-      <span className="pb-0.5 text-[0.8rem] text-[#888] line-through">
-        ₹{product.mrp}
-      </span>
-    </>
-  ) : (
-    /* No Discount → Show Only One Price */
-    <span className="text-[1.25rem] font-black tracking-tight text-[#1b3137]">
-      ₹{product.price || product.mrp}
-    </span>
-  )}
-</div>
-
-
-
-                      <div className="mt-2.5 w-full h-[44px] flex items-center justify-center">
-                        {cartQuantities[product.id] ? (
-                          <div className="w-full flex items-center justify-between gap-2">
-                            <div className="w-[45%] flex items-center justify-between gap-1.5 rounded-lg border border-[#2e79e3] px-2 py-1 hover:bg-[#f2f6ff] transition">
-                              <button
-                                className="text-base font-bold text-[#2e79e3] transition leading-none"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (cartQuantities[product.id] <= 1) {
-                                    removeFromCart(product.id);
-                                  } else {
-                                    updateQuantity(product.id, cartQuantities[product.id] - 1);
-                                  }
-                                }}
-                              >
-                                –
-                              </button>
-                              <span className="text-center text-sm font-bold text-[#2e79e3] min-w-[25px]">
-                                {cartQuantities[product.id]}
-                              </span>
-                              <button
-                                className="text-base font-bold text-[#2e79e3] transition disabled:text-[#ccc] disabled:cursor-not-allowed leading-none"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (cartQuantities[product.id] < product.stock_quantity) {
-                                    updateQuantity(product.id, cartQuantities[product.id] + 1);
-                                  }
-                                }}
-                                disabled={cartQuantities[product.id] >= product.stock_quantity}
-                              >
-                                +
-                              </button>
-                            </div>
-                            <span className="w-[45%] text-xs font-semibold text-[#999] text-center" title={`Max: ${product.stock_quantity}`}>Max: {product.stock_quantity}</span>
+                        return (
+                          <div className="text-center text-3xl text-[#999]">
+                            <span>📦</span>
+                            <p className="mt-1 text-xs">No Image</p>
                           </div>
-                        ) : (
-                          <button
-                            className={`w-full h-full inline-flex items-center justify-center rounded-xl border-2 px-4 py-2 text-[0.95rem] font-semibold transition ${
-                              product.stock_quantity <= 0
-                                ? 'cursor-not-allowed border-[#ccc] bg-[#ccc] text-white'
-                                : 'border-[#2e79e3] bg-white text-[#2e79e3] hover:bg-[#2e79e3] hover:text-white hover:shadow-[0_8px_18px_rgba(46,121,227,0.3)]'
-                            }`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAddToCart(product);
-                            }}
-                            disabled={product.stock_quantity <= 0}
-                          >
-                            {product.stock_quantity <= 0
-                              ? 'Out of Stock'
-                              : 'Add to Cart'}
-                          </button>
-                        )}
+                        );
+                      })()}
+                    </div>
+
+
+
+                    <div className="flex flex-1 flex-col p-3">
+                      <h3 className="line-clamp-2 min-h-[2.6rem] text-[0.98rem] font-semibold leading-5 text-[#213d43] sm:text-[1rem]">{product.name}</h3>
+                      <p className="h-[44px] overflow-hidden text-ellipsis text-[0.875rem] text-[#666]">
+                        {product.description}
+                      </p>
+                      <div className=" pt-2.5">
+                        <div className="flex items-end gap-1.5">
+
+                          {product.mrp && product.price && Number(product.mrp) > Number(product.price) ? (
+                            <>
+                              {/* Final Price */}
+                              <span className="text-[1.25rem] font-black tracking-tight text-[#1b3137]">
+                                ₹{product.price}
+                              </span>
+
+                              {/* MRP Strike */}
+                              <span className="pb-0.5 text-[0.8rem] text-[#888] line-through">
+                                ₹{product.mrp}
+                              </span>
+                            </>
+                          ) : (
+                            /* No Discount → Show Only One Price */
+                            <span className="text-[1.25rem] font-black tracking-tight text-[#1b3137]">
+                              ₹{product.price || product.mrp}
+                            </span>
+                          )}
+                        </div>
+
+
+
+                        <div className="mt-2.5 w-full h-[44px] flex items-center justify-center">
+                          {cartQuantities[product.id] ? (
+                            <div className="w-full flex items-center justify-between gap-2">
+                              <div className="w-[45%] flex items-center justify-between gap-1.5 rounded-lg border border-[#2e79e3] px-2 py-1 hover:bg-slate-100 transition">
+                                <button
+                                  className="text-base font-bold text-[#2e79e3] transition leading-none"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (cartQuantities[product.id] <= 1) {
+                                      removeFromCart(product.id);
+                                    } else {
+                                      updateQuantity(product.id, cartQuantities[product.id] - 1);
+                                    }
+                                  }}
+                                >
+                                  –
+                                </button>
+                                <span className="text-center text-sm font-bold text-[#2e79e3] min-w-[25px]">
+                                  {cartQuantities[product.id]}
+                                </span>
+                                <button
+                                  className="text-base font-bold text-[#2e79e3] transition disabled:text-[#ccc] disabled:cursor-not-allowed leading-none"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (cartQuantities[product.id] < product.stock_quantity) {
+                                      updateQuantity(product.id, cartQuantities[product.id] + 1);
+                                    }
+                                  }}
+                                  disabled={cartQuantities[product.id] >= product.stock_quantity}
+                                >
+                                  +
+                                </button>
+                              </div>
+                              <span className="w-[45%] text-xs font-semibold text-[#999] text-center" title={`Max: ${product.stock_quantity}`}>Max: {product.stock_quantity}</span>
+                            </div>
+                          ) : (
+                            <button
+                              className={`w-full h-full inline-flex items-center justify-center rounded-xl border-2 px-4 py-2 text-[0.95rem] font-semibold transition ${product.stock_quantity <= 0
+                                  ? 'cursor-not-allowed border-[#ccc] bg-[#ccc] text-white'
+                                  : 'border-[#2e79e3] bg-white text-[#2e79e3] hover:bg-[#2e79e3] hover:text-white hover:shadow-[0_8px_18px_rgba(46,121,227,0.3)]'
+                                }`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddToCart(product);
+                              }}
+                              disabled={product.stock_quantity <= 0}
+                            >
+                              {product.stock_quantity <= 0
+                                ? 'Out of Stock'
+                                : 'Add to Cart'}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {isMobileFiltersOpen && (
+            <div className="fixed inset-0 z-[1100] lg:hidden" role="dialog" aria-modal="true" aria-label="Filter products">
+              <button
+                type="button"
+                aria-label="Close filters"
+                className="absolute inset-0 bg-black/35 backdrop-blur-[1px]"
+                onClick={() => setIsMobileFiltersOpen(false)}
+              />
+
+              <div
+                className="absolute left-0 w-[74vw] max-w-[250px] overflow-y-auto overscroll-contain border-r border-[#d8e5e7] bg-[#eaf2f3 ] p-3 shadow-[0_18px_40px_rgba(27,49,55,0.25)] rounded-tr-2xl rounded-br-2xl sm:w-[68vw] sm:max-w-[280px] sm:p-4"
+                style={{ top: `${mobileFilterTop}px`, height: `calc(100dvh - ${mobileFilterTop}px)` }}
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#0f6a73]">Filters</p>
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileFiltersOpen(false)}
+                    className="rounded-lg border border-[#bdd0d3] bg-white px-3 py-1.5 text-sm font-semibold text-[#1b3137]"
+                  >
+                    Close
+                  </button>
                 </div>
-              ))}
+                {renderFilters(true)}
+              </div>
             </div>
           )}
-        </section>
-
-        {isMobileFiltersOpen && (
-          <div className="fixed inset-0 z-[1100] lg:hidden" role="dialog" aria-modal="true" aria-label="Filter products">
-            <button
-              type="button"
-              aria-label="Close filters"
-              className="absolute inset-0 bg-black/35 backdrop-blur-[1px]"
-              onClick={() => setIsMobileFiltersOpen(false)}
-            />
-
-            <div
-              className="absolute left-0 w-[74vw] max-w-[250px] overflow-y-auto overscroll-contain border-r border-[#d8e5e7] bg-[#eaf2f3 ] p-3 shadow-[0_18px_40px_rgba(27,49,55,0.25)] rounded-tr-2xl rounded-br-2xl sm:w-[68vw] sm:max-w-[280px] sm:p-4"
-              style={{ top: `${mobileFilterTop}px`, height: `calc(100dvh - ${mobileFilterTop}px)` }}
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#0f6a73]">Filters</p>
-                <button
-                  type="button"
-                  onClick={() => setIsMobileFiltersOpen(false)}
-                  className="rounded-lg border border-[#bdd0d3] bg-white px-3 py-1.5 text-sm font-semibold text-[#1b3137]"
-                >
-                  Close
-                </button>
-              </div>
-              {renderFilters(true)}
-            </div>
-          </div>
-        )}
         </div>
       </main>
       <Footer />
