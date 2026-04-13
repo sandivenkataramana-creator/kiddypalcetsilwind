@@ -209,15 +209,15 @@ const PaymentPage = () => {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-white px-4 py-8 text-[#273c2e] sm:px-6 lg:px-8 lg:py-10">
-        <div className="mx-auto w-full max-w-[1400px]">
-          <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+      <div className="min-h-screen bg-white px-3 py-5 text-[#273c2e] sm:px-6 lg:px-8 lg:py-10 overflow-x-hidden">
+       <div className="mx-auto w-full max-w-[1400px] px-1 sm:px-0">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.5fr_1fr]">
             {/* Left Side - Payment Information */}
             <div>
-              <h2 className="mb-5 text-3xl font-extrabold tracking-tight text-[#273c2e]">Select Payment Option</h2>
+              <h2 className="mb-4 text-2xl sm:text-3xl font-extrabold tracking-tight text-[#273c2e]">Select Payment Option</h2>
 
               <div
-                className={`mb-5 cursor-pointer rounded-2xl border bg-white p-6 shadow-[0_8px_24px_rgba(39,60,46,0.15)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(39,60,46,0.2)] ${
+                className={`mb-5 cursor-pointer rounded-2xl border bg-white p-4 sm:p-6 shadow-[0_8px_24px_rgba(39,60,46,0.15)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(39,60,46,0.2)] ${
                   paymentOption === 'online' ? 'border-[#2e79e3] ring-2 ring-[#2e79e3]/30' : 'border-[#ede6d9]'
                 }`}
                 onClick={() => setPaymentOption('online')}
@@ -245,7 +245,7 @@ const PaymentPage = () => {
               </div>
 
               <div
-                className={`cursor-pointer rounded-2xl border bg-white p-6 shadow-[0_8px_24px_rgba(39,60,46,0.15)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(39,60,46,0.2)] ${
+                className={`cursor-pointer rounded-2xl border bg-white p-4 sm:p-6 shadow-[0_8px_24px_rgba(39,60,46,0.15)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(39,60,46,0.2)] ${
                   paymentOption === 'cod' ? 'border-[#2e79e3] ring-2 ring-[#2e79e3]/30' : 'border-[#ede6d9]'
                 }`}
                 onClick={() => setPaymentOption('cod')}
@@ -276,7 +276,7 @@ const PaymentPage = () => {
             <div>
               <h2 className="mb-5 text-3xl font-extrabold tracking-tight text-[#273c2e]">Order Summary</h2>
               
-              <div className="sticky top-24 rounded-2xl border border-[#eee] bg-gradient-to-b from-white to-[#fafafa] p-5 shadow-[0_6px_14px_rgba(0,0,0,0.06)]">
+              <div className="relative lg:sticky lg:top-24 rounded-2xl border border-[#eee] bg-gradient-to-b from-white to-[#fafafa] p-5 shadow-[0_6px_14px_rgba(0,0,0,0.06)]">
                 <div>
                   <h3 className="mb-4 border-b-2 border-black pb-2 text-xl font-bold text-black">Items ({orderData.items.length})</h3>
                   {orderData.items.map((item, index) => {
@@ -284,7 +284,7 @@ const PaymentPage = () => {
                     const discountAmount = originalPrice - item.price;
                     return (
                       <div key={index} className="flex items-center justify-between border-b border-black py-3">
-                        <div className="flex min-w-0 flex-col gap-1">
+                       <div className="flex min-w-0 flex-1 flex-col gap-1">
                           <span className="truncate text-sm font-semibold text-black">{item.name}</span>
                           <span className="text-xs text-[#6c7d6e]">Qty: {item.quantity}</span>
                           {discountAmount > 0 && (

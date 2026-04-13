@@ -6,7 +6,7 @@ import axios from "axios";
 import { API_BASE_URL } from "./config";
 import AnnouncementEditor from "./announcementEditor";
 import Select from "react-select";
-
+import { useCart } from "../context/CartContext";
 const getAdminHeaders = () => {
   const token = localStorage.getItem("adminToken");
   if (!token) return {};
@@ -29,7 +29,7 @@ const AdminPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [manageSort, setManageSort] = useState("latest");
   const [uploadSearch, setUploadSearch] = useState("");
-
+  const { addToCart } = useCart();
 
   const [loading, setLoading] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -2075,19 +2075,15 @@ const handleCancelEditBrand = () => {
       return;
     }
 
-    const existingItemIndex = billItems.findIndex(item => item.id === product.id);
-    if (existingItemIndex >= 0) {
-      const updatedItems = [...billItems];
-      updatedItems[existingItemIndex].quantity += qty;
-      setBillItems(updatedItems);
-    } else {
-      setBillItems([...billItems, {
-        id: product.id,
-        name: product.name,
-        price: parseFloat(product.price),
-        quantity: qty,
-      }]);
-    }
+   addToCart(
+  {
+    id: product.id,
+    name: product.name,
+    price: parseFloat(product.price),
+    image: product.image || "", // optional
+  },
+  qty
+);
 
     setQuickAddQty(prev => ({ ...prev, [productId]: 1 }));
     setMessage('');
@@ -3011,7 +3007,7 @@ if (isVerifying) {
                 </select>
 
                 {ordersStatusFilter !== 'all' && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 w-full">
                     <span className="rounded-full bg-indigo-50 px-3 py-1 text-sm font-semibold capitalize text-indigo-700">
                       {ordersStatusFilter}
                     </span>
@@ -3720,37 +3716,32 @@ if (isVerifying) {
                 </div>
               ) : null}
 
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr,74px,1fr] sm:items-center">
-                {editingProductId !== product.id ? (
-                  <span
-                    className={`inline-flex w-fit rounded-full px-2.5 py-1 text-xs font-semibold ${Number(product.stock_quantity ?? 0) <= 5 ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}
-                  >
-                    Stock: <strong className="ml-1">{product.stock_quantity ?? 0}</strong>
-                  </span>
-                ) : (
-                  <span className="text-xs font-medium text-slate-500">Set quantity for quick add</span>
-                )}
+             <div className="grid grid-cols-[auto_60px_1fr] gap-2 items-center w-full">
+  
+  <span className="text-xs whitespace-nowrap">
+    Stock: {product.stock_quantity}
+  </span>
 
-                <input
-                  type="number"
-                  min="1"
-                  value={quickAddQty[product.id] ?? 1}
-                  onChange={(e) =>
-                    setQuickAddQty((prev) => ({
-                      ...prev,
-                      [product.id]: parseInt(e.target.value || "1", 10),
-                    }))
-                  }
-                  className="w-full rounded-md border border-slate-300 px-2 py-2 text-center text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                />
+  <input
+    type="number"
+    value={quickAddQty[product.id] || 1}
+    onChange={(e) =>
+  setQuickAddQty((prev) => ({
+    ...prev,
+    [product.id]: e.target.value,
+  }))
+}
+    className="w-full px-2 py-1 border rounded-md text-sm"
+  />
 
-                <button
-                  onClick={() => handleQuickAddToBill(product.id)}
-                  className="min-h-[40px] rounded-lg bg-pink-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-pink-600"
-                >
-                  Add to bag
-                </button>
-              </div>
+  <button
+    onClick={() => handleQuickAddToBill(product.id)}
+    className="w-full px-2 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-pink-500 text-white"
+  >
+    Add to bag
+  </button>
+
+</div>
 
               <div className="mt-auto grid grid-cols-2 gap-2">
                 <button
@@ -3889,7 +3880,7 @@ if (isVerifying) {
                                 <td className="border-b border-slate-100 px-3 py-2 text-slate-800">{item.name}</td>
                                 <td className="border-b border-slate-100 px-3 py-2 text-slate-800">₹{item.price.toFixed(2)}</td>
                                 <td className="border-b border-slate-100 px-3 py-2">
-                                  <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-1 py-1">
+                                  <div className="inline-flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-1 py-1">
                                     <button
                                       onClick={() => handleUpdateBillQuantity(item.id, item.quantity - 1)}
                                       className="grid h-7 w-7 place-items-center rounded-md border border-slate-200 bg-white text-sm font-bold text-slate-700 transition hover:bg-slate-100"

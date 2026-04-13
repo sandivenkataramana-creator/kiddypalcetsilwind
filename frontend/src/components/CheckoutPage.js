@@ -236,13 +236,13 @@ const itemsToCheckout = singleProduct ? [singleProduct] : cartItems;
   return (
     <div className="flex min-h-screen flex-col bg-white text-[#273c2e]">
       <Header />
-      <main className="flex-1 bg-white px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <main className="flex-1 bg-white px-3 py-4 sm:px-6 lg:px-8 lg:py-8 overflow-x-hidden">
         
-        <div className="mx-auto w-full max-w-[1400px]">
+        <div className="mx-auto w-full max-w-[1400px] px-1 sm:px-0">
           <h1 className="mb-7 text-center text-4xl font-black tracking-tight text-[#273c2e] sm:text-5xl">Checkout</h1>
           
-          <div className="grid gap-6 xl:grid-cols-[1fr_400px]">
-            <div className="relative rounded-3xl border border-[#ede6d9] bg-white p-5 shadow-[0_20px_60px_rgba(39,60,46,0.12)] sm:p-7">
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_400px]">
+            <div className="relative rounded-3xl border border-[#ede6d9] bg-white p-3 shadow-[0_20px_60px_rgba(39,60,46,0.12)] sm:p-5 lg:p-7">
               <div className="absolute inset-x-0 top-0 h-[3px] rounded-t-3xl bg-gradient-to-r from-transparent via-[#e74c8b] to-transparent" />
               <h2 className="mb-5 border-b-2 border-[#ede6d9] pb-3 text-2xl font-extrabold tracking-tight text-[#273c2e]">📍 Shipping Information</h2>
 
@@ -286,7 +286,7 @@ const itemsToCheckout = singleProduct ? [singleProduct] : cartItems;
 
               {/* Continue to payment button - shown only when address is selected */}
               {addresses.length > 0 && selectedAddress && (
-                <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-between">
+                <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-between w-full">
                   <button
                     type="button"
                     className="flex-1 rounded-xl border-2 border-[#e8e0d5] bg-white px-4 py-3 text-sm font-bold text-[#555] transition hover:bg-[#f5f3f0]"
@@ -311,7 +311,7 @@ const itemsToCheckout = singleProduct ? [singleProduct] : cartItems;
                 <div className="mb-3 space-y-2">
   {itemsToCheckout.map((item) => (
     <div key={item.id} className="flex items-center justify-between gap-3 border-b border-[#f0ece6] pb-2 text-sm">
-      <div className="flex min-w-0 items-center gap-2">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
         <span className="truncate font-semibold text-[#273c2e]">{item.name}</span>
         <span className="shrink-0 text-xs text-[#777]">× {item.quantity || 1}</span>
       </div>
