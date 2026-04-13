@@ -26,7 +26,14 @@ const [settingMainImage, setSettingMainImage] = useState(false);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [isInCartMode, setIsInCartMode] = useState(false);
   const [cartQuantity, setCartQuantity] = useState(1);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const handleScroll = (e) => {
+  const scrollLeft = e.target.scrollLeft;
+  const width = e.target.clientWidth;
 
+  const index = Math.round(scrollLeft / width);
+  setCurrentIndex(index);
+};
   const [activeImage, setActiveImage] = useState(null);
 
   // ============ ALL HOOKS MUST BE HERE BEFORE ANY EARLY RETURNS ============
@@ -438,106 +445,70 @@ const handleClearMainImage = async () => {
       <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 rounded-[28px] border border-emerald-100 bg-white/90 p-4 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur sm:p-6 lg:p-8">
           <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)]">
-            <section className="flex flex-col gap-4 lg:flex-row">
-              <div className="flex flex-row gap-3 overflow-x-auto pb-2 lg:max-h-[520px] lg:flex-col lg:overflow-y-auto lg:overflow-x-hidden lg:pb-0">
-                {imageSources.map((img) => (
-                  <div key={img.id} className="relative shrink-0">
-                    <img
-                      src={img.url}
-                      alt="thumbnail"
-                      className={`h-20 w-16 cursor-pointer rounded-xl border object-cover transition hover:border-slate-900 lg:h-[82px] lg:w-[66px] ${
-                        activeImage?.id === img.id ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-slate-200'
-                      }`}
-                      onClick={() => setActiveImage(img)}
-                      onError={(e) => {
-                        console.error('Failed to load thumbnail:', img.url);
-                        e.currentTarget.src = '/images/ironman.jpg';
-                      }}
-                    />
+      <section className="flex flex-col lg:flex-row gap-4 w-full">
 
-                    {isAdminLoggedIn && (
-                      <button
-                        className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-amber-400 text-[11px] text-white shadow-sm transition hover:scale-110 disabled:opacity-60"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSetMainImage(img.id);
-                        }}
-                        disabled={settingMainImage}
-                        title="Set as display image for product list"
-                      >
-                        ⭐
-                      </button>
-                    )}
+  {/* 💻 DESKTOP THUMBNAILS (LEFT SIDE) */}
+  <div className="hidden lg:flex flex-col gap-3 overflow-y-auto max-h-[520px]">
+    {imageSources.map((img, i) => (
+      <img
+        key={img.id}
+        src={img.url}
+        onClick={() => setCurrentIndex(i)}
+        className={`h-[80px] w-[65px] object-cover rounded-lg cursor-pointer border ${
+          i === currentIndex ? "border-black" : "border-gray-300"
+        }`}
+      />
+    ))}
+  </div>
 
-                    {isAdminLoggedIn && (
-                      <button
-                        className="absolute bottom-1 right-1 grid h-6 w-6 place-items-center rounded-full bg-rose-500 text-[11px] text-white shadow-sm transition hover:scale-110"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteImage(img.id);
-                        }}
-                        title="Delete image"
-                      >
-                        🗑️
-                      </button>
-                    )}
-                  </div>
-                ))}
+  {/* MAIN AREA */}
+  <div className="flex-1 w-full">
 
-                {isAdminLoggedIn && (
-                  <>
-                    <label className="flex h-20 w-16 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 text-2xl font-bold text-slate-500 transition hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-700 lg:h-[82px] lg:w-[66px]">
-                      +
-                      <input
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        hidden
-                        onChange={(e) => setUploadImages(Array.from(e.target.files || []))}
-                      />
-                    </label>
+    {/* 📱 MOBILE + TABLET SLIDER */}
+    <div
+      onScroll={handleScroll}
+      className="flex lg:hidden overflow-x-auto snap-x snap-mandatory scrollbar-hide scroll-smooth"
+    >
+      {imageSources.map((img, i) => (
+        <div
+          key={img.id}
+          className="min-w-full snap-center snap-always flex items-center justify-center h-[320px] sm:h-[420px] bg-slate-50 rounded-2xl"
+        >
+          <img
+            src={img.url}
+            className="w-full h-full object-contain"
+          />
+        </div>
+      ))}
+    </div>
 
-                    {uploadImages.length > 0 && (
-                      <button
-                        className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-                        onClick={handleImageUpload}
-                      >
-                        Upload Images
-                      </button>
-                    )}
+    {/* 📱 MOBILE THUMBNAILS (BOTTOM) */}
+    <div className="flex lg:hidden gap-2 mt-3 overflow-x-auto">
+      {imageSources.map((img, i) => (
+        <img
+          key={img.id}
+          src={img.url}
+          onClick={() => setCurrentIndex(i)}
+          className={`h-16 w-16 object-cover rounded-md cursor-pointer border ${
+            i === currentIndex ? "border-black" : "border-gray-300"
+          }`}
+        />
+      ))}
+    </div>
 
-                    {product?.image_url && (
-                      <button
-                        className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:border-rose-400 hover:bg-rose-100"
-                        onClick={handleClearMainImage}
-                        disabled={settingMainImage}
-                        title="Remove the manually selected display image"
-                      >
-                        Clear Selection
-                      </button>
-                    )}
-                  </>
-                )}
-              </div>
+    {/* 💻 DESKTOP MAIN IMAGE */}
+    <div className="hidden lg:flex items-center justify-center h-[520px] bg-slate-50 rounded-2xl">
+      {imageSources.length > 0 && (
+        <img
+          src={imageSources[currentIndex]?.url}
+          className="w-full h-full object-contain"
+        />
+      )}
+    </div>
 
-              <div className="flex min-w-0 flex-1 items-center justify-center rounded-3xl border border-slate-200 bg-slate-50 p-4 h-[520px]">
-                {activeImage ? (
-                  <img
-                    src={activeImage.url}
-                    alt={product?.name || 'Product image'}
-                    className="max-h-[520px] w-full object-contain"
-                    onError={(e) => {
-                      console.error('Failed to load image:', activeImage.url);
-                      e.currentTarget.src = '/images/ironman.jpg';
-                    }}
-                  />
-                ) : (
-                  <div className="flex h-[420px] w-full items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white text-lg font-medium text-slate-500">
-                    📦 No Image
-                  </div>
-                )}
-              </div>
-            </section>
+  </div>
+
+</section>
 
             <section className="flex flex-col items-start rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 overflow-y-auto h-full">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">

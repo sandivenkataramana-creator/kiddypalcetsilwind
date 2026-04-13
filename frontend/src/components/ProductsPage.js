@@ -730,7 +730,7 @@ const ProductsPage = () => {
       </div>
 
       <button
-        className="mt-1 w-full rounded-xl border border-[#f46f56] bg-[#f46f56] px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-[0_10px_18px_rgba(244,111,86,0.3)]"
+        className="mt-1 w-full rounded-xl border border-[#] bg-[#f01c71] px-3 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-[0_10px_18px_rgba(244,111,86,0.3)]"
         onClick={() => {
           clearAllFilters();
           if (isMobile) setIsMobileFiltersOpen(false);
@@ -833,7 +833,7 @@ const ProductsPage = () => {
                 <p>No products found.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 ">
                 {sortedProducts.map((product) => (
                   <div
                     key={product.id}
@@ -867,7 +867,7 @@ const ProductsPage = () => {
 
                       {/* 🔥 Discount badge from DB */}
                       {product.discount_percent > 0 && (
-                        <div className="absolute right-2 top-2 z-[6] rounded-full bg-gradient-to-r from-[#2e79e3] to-[#245fb1] px-2 py-1 text-[11px] font-bold leading-none text-white shadow-[0_6px_16px_rgba(46,121,227,0.28)]">
+                        <div className="absolute right-2 top-2 z-[6] rounded-full bg-gradient-to-r from-[#f01c71] to-[#ff4b92] px-2 py-1 text-[11px] font-bold leading-none text-white shadow-[0_6px_16px_rgba(240,28,113,0.28)]">
                           {product.discount_percent}% OFF
                         </div>
                       )}

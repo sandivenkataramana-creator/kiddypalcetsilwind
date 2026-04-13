@@ -34,7 +34,7 @@ const StoreLocator = () => {
 
       <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         <div className="mx-auto w-full max-w-6xl">
-          <h1 className="mb-8 text-3xl font-black tracking-tight sm:text-4xl">Our Stores</h1>
+          <h1 className="mb-8 text-center text-3xl font-black tracking-tight sm:text-4xl">Our Stores</h1>
 
           <div className="space-y-12">
           {stores.map((store, index) => {
@@ -65,7 +65,7 @@ const StoreLocator = () => {
                         <img
                           src={`${API_BASE_URL}${store.image_url}`}
                           alt={store.name}
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-contain"
                         />
                       ) : (
                         <div className="grid h-full w-full place-items-center text-2xl font-bold text-[#777]">No Image</div>
@@ -77,12 +77,12 @@ const StoreLocator = () => {
                 {/* RIGHT SIDE */}
                 <div className={`flex justify-center ${isEven ? 'order-1 md:order-2' : 'order-2 md:order-2'}`}>
                   {isEven ? (
-                    <div className="h-[240px] w-full max-w-[450px] overflow-hidden rounded-2xl bg-[#eee] shadow-[0_8px_20px_rgba(39,60,46,0.1)]">
+                    <div className="<div className=w-full max-w-[450px] overflow-hidden rounded-2xl bg-[#eee] shadow-[0_8px_20px_rgba(39,60,46,0.1)]">
                       {store.image_url ? (
                         <img
                           src={`${API_BASE_URL}${store.image_url}`}
                           alt={store.name}
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-contain"
                         />
                       ) : (
                         <div className="grid h-full w-full place-items-center text-2xl font-bold text-[#777]">No Image</div>

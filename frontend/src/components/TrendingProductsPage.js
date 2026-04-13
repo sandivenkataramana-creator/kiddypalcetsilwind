@@ -136,7 +136,7 @@ const TrendingProductsPage = () => {
                 >
                   <div className="relative flex h-[180px] items-center justify-center bg-[#f7f7f7]">
                     {product.discount_percent > 0 && (
-                      <div className="absolute right-2 top-2 z-[6] rounded-full bg-gradient-to-r from-[#1e90ff] to-[#5aa8ff] px-2 py-1 text-[11px] font-bold leading-none text-white shadow-[0_6px_16px_rgba(30,144,255,0.24)]">
+                      <div className="absolute right-2 top-2 z-[6] rounded-full bg-gradient-to-r from-[#f01c71] to-[#ff4b92] px-2 py-1 text-[11px] font-bold leading-none text-white shadow-[0_6px_16px_rgba(240,28,113,0.28)]">
                         {product.discount_percent}% OFF
                       </div>
                     )}
