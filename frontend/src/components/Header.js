@@ -30,7 +30,26 @@ const Header = () => {
   const headerRef = useRef(null);
   const typingTimer = useRef(null);
   const dropdownCloseTimer = useRef(null);
+ const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
+useEffect(() => {
+  const handleResize = () => {
+    setIsDesktop(window.innerWidth >= 1024);
+  };
+
+  window.addEventListener("resize", handleResize);
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
+const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+useEffect(() => {
+  const handleResize = () => {
+    setIsMobile(window.innerWidth < 1024);
+  };
+
+  window.addEventListener("resize", handleResize);
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
   const syncUserFromStorage = () => {
     const storedUser = localStorage.getItem('user');
     if (storedUser && storedUser !== 'undefined') {
@@ -346,9 +365,9 @@ const Header = () => {
         <div className="flex items-center">
           <a href="/"><img src={logo} alt="KP Logo" className="h-12 w-auto cursor-pointer transition hover:scale-105 sm:h-16" /></a>
         </div>
-
-        <div className="hidden flex-1 justify-center xl:flex">
-          <ul className="m-0 flex list-none items-center gap-6 p-0">
+       
+       <div className="hidden flex-1 justify-center lg:flex overflow-hidden">
+          <ul className="m-0 flex list-none items-center gap-3 xl:gap-6 p-0">
             <li className={navItemClass} onClick={() => navigate('/about')}>About</li>
             <li className={navItemClass} onClick={() => navigate('/products')}>All Products</li>
 
@@ -433,13 +452,15 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-3">
-          <button
-            type="button"
-            className={`flex cursor-pointer items-center justify-center rounded-xl p-1.5 text-[#273c2e] transition duration-300 ease-out xl:hidden ${mobileMenuOpen ? 'scale-105' : 'hover:scale-105 hover:bg-[#fff7eb]'}`}
-            onClick={() => setMobileMenuOpen((previous) => !previous)}
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+        {isMobile && (
+  <button
+    type="button"
+    className="flex cursor-pointer items-center justify-center rounded-xl p-1.5 text-[#273c2e]"
+    onClick={() => setMobileMenuOpen(prev => !prev)}
+  >
+    {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+  </button>
+)}
 
           <div className="icon search-icon relative inline-flex cursor-pointer items-center justify-center rounded-xl p-1.5 text-[#273c2e] transition hover:bg-[#fff7eb]" onClick={() => setSearchOpen((previous) => !previous)}>
             <Search size={21} />
@@ -516,7 +537,7 @@ const Header = () => {
       </div>
 
       {mobileMenuOpen && (
-        <div className="mobile-menu fixed inset-0 z-[1500] bg-black/30 backdrop-blur-[2px] animate-[kpFadeIn_260ms_ease-out] xl:hidden" onClick={() => setMobileMenuOpen(false)}>
+        <div className="mobile-menu fixed inset-0 z-[1500] bg-black/30 backdrop-blur-[2px] animate-[kpFadeIn_260ms_ease-out] " onClick={() => setMobileMenuOpen(false)}>
           <div className="mobile-menu-content absolute right-0 top-0 h-full w-[60vw] max-w-sm overflow-y-auto bg-white p-5 shadow-soft animate-[kpSlideIn_280ms_ease-out]" onClick={(event) => event.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-bold text-[#273c2e]">Menu</h2>
