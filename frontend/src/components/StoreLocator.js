@@ -60,7 +60,7 @@ const StoreLocator = () => {
                       )}
                     </div>
                   ) : (
-                    <div className="h-[240px] w-full max-w-[450px] overflow-hidden rounded-2xl bg-[#eee] shadow-[0_8px_20px_rgba(39,60,46,0.1)]">
+                    <div className="h-[360px] w-full max-w-[450px] overflow-hidden rounded-2xl bg-[#eee] shadow-[0_8px_20px_rgba(39,60,46,0.1)]">
                       {store.image_url ? (
                         <img
                           src={`${API_BASE_URL}${store.image_url}`}
@@ -77,7 +77,7 @@ const StoreLocator = () => {
                 {/* RIGHT SIDE */}
                 <div className={`flex justify-center ${isEven ? 'order-1 md:order-2' : 'order-2 md:order-2'}`}>
                   {isEven ? (
-                    <div className="<div className=w-full max-w-[450px] overflow-hidden rounded-2xl bg-[#eee] shadow-[0_8px_20px_rgba(39,60,46,0.1)]">
+                    <div className="h-[360px] w-full max-w-[450px] overflow-hidden rounded-2xl bg-[#eee] shadow-[0_8px_20px_rgba(39,60,46,0.1)]">
                       {store.image_url ? (
                         <img
                           src={`${API_BASE_URL}${store.image_url}`}
